@@ -1,0 +1,39 @@
+# ============================================================================
+#  DigitalOcean App Platform spec — KIA / Urbex dashboard
+#
+#  First deploy:
+#     doctl apps create --spec .do/app.yaml
+#  Update an existing app:
+#     doctl apps update <APP_ID> --spec .do/app.yaml
+#
+#  (Or in the DO dashboard: Apps -> Create -> GitHub repo below; it auto-detects
+#   this spec. GitHub must be connected to your DigitalOcean account first.)
+# ============================================================================
+name: kia-urbex-dashboard
+region: nyc                       # closest DO region to Bogotá; sfo/tor also fine
+
+services:
+  - name: web
+    # Build the container from the Dockerfile at the repo root.
+    dockerfile_path: Dockerfile
+    source_dir: /
+
+    github:
+      repo: nicolas04rodriguez-debug/KIA---Dashboards
+      branch: main
+      deploy_on_push: true        # auto-redeploy on every push to main
+
+    http_port: 8080               # must match EXPOSE / nginx `listen`
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-0.5gb   # smallest Basic tier (~$5/mo)
+
+    routes:
+      - path: /
+
+    health_check:
+      http_path: /
+      initial_delay_seconds: 10
+      period_seconds: 10
+      timeout_seconds: 3
+      success_threshold: 1
+      failure_threshold: 3

@@ -445,7 +445,6 @@ body.hm-standalone #hm-root{padding:22px 26px;max-width:1600px;margin:0 auto}
         <input type="search" id="hm-search" list="hm-dl" placeholder="Buscar localidad o sector…">
         <datalist id="hm-dl"></datalist>
         <button class="hm-btn" id="hm-reset" title="Restablecer filtros y vista">⟲ Reset</button>
-        <button class="hm-btn" id="hm-csv" title="Descargar ranking CSV">⤓ CSV</button>
         <button class="hm-btn" id="hm-fs" title="Pantalla completa">⛶</button>
       </div>
     </div>
@@ -1784,28 +1783,6 @@ function initUrbexHeatmap(DATA){
     $('hm-basemap').value='light';
     map.removeLayer(curBase); curBase=bases.light.addTo(map); curBase.bringToBack();
     syncUI(); recompute(); didFit=false; fitData();
-  };
-  $('hm-csv').onclick=()=>{
-    const order = LOCS.map((n,i)=>({n,i,v:CUR.vals[i]})).sort((a,b)=>b.v-a.v);
-    const tot = CUR.vals.reduce((a,b)=>a+b,0)||1;
-    const dec = v => String(v).replace('.',',');           // es-CO decimals
-    const isVal = CUR.unit==='$M';
-    const note = isVal
-      ? `"Valor de avalúos en millones de COP · cobertura ${covValPct}% (${fmt(S.cars_con_avaluo||0)} de ${fmt(S.cars)} carros)"`
-      : st.brand>=0 ? `"Filtro ${BRANDS[st.brand]} · solo carros con marca registrada (${covB}% de Bogotá)"`
-      : st.year>=0 ? `"Filtro ${YEARS[st.year]} · solo carros con año registrado (${covY}% de Bogotá)"`
-      : '"Carros únicos (placa) por localidad · Bogotá D.C."';
-    const head = ['Puesto','Localidad', isVal?'Valor $M COP':'Carros'+(CUR.tag?` (${CUR.tag})`:''),'%']
-      .concat(isVal?['Carros (total)','Marca top']:['Carros (total)','Valor $M COP (total)','Marca top']);
-    const lines = order.map((o,k)=>{ const r=RANK0[o.i];
-      const base=[k+1, `"${o.n}"`, dec(o.v), dec((o.v/tot*100).toFixed(1))];
-      return base.concat(isVal?[r.count, `"${r.top_marca||''}"`]
-                              :[r.count, dec(r.valor||0), `"${r.top_marca||''}"`]).join(';'); });
-    const csv='﻿'+note+'\n'+head.join(';')+'\n'+lines.join('\n');
-    const suffix = st.brand>=0?'_'+BRANDS[st.brand]:st.year>=0?'_'+YEARS[st.year]:isVal?'_valor':'';
-    const fname=('ranking_localidades'+suffix).replace(/[^A-Za-z0-9_]/g,'_')+'.csv';
-    const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
-    a.download=fname; a.click(); URL.revokeObjectURL(a.href);
   };
   $('hm-fs').onclick=()=>{ const el=$('hm-mapcard');
     if(document.fullscreenElement) document.exitFullscreen(); else if(el.requestFullscreen) el.requestFullscreen(); };

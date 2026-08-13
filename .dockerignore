@@ -1,0 +1,10 @@
+# Keep the build context tiny — only index.html is copied into the image.
+.git
+.gitignore
+.nojekyll
+.do
+README.md
+DEPLOY_DIGITALOCEAN.md
+Dockerfile
+.dockerignore
+*.md
