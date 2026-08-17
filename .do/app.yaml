@@ -1,39 +1,41 @@
 # ============================================================================
 #  DigitalOcean App Platform spec — KIA / Urbex dashboard
 #
+#  The dashboard is ONE self-contained index.html (data travels encrypted
+#  inside the file), so it ships as a STATIC SITE: no container, no port to
+#  listen on, no runtime. That removes the whole class of "service started but
+#  nothing answers on the port" 404s, and it is cheaper than a Service.
+#
 #  First deploy:
 #     doctl apps create --spec .do/app.yaml
 #  Update an existing app:
 #     doctl apps update <APP_ID> --spec .do/app.yaml
 #
-#  (Or in the DO dashboard: Apps -> Create -> GitHub repo below; it auto-detects
-#   this spec. GitHub must be connected to your DigitalOcean account first.)
+#  In the dashboard: Apps -> Create -> GitHub -> this repo, then make sure the
+#  component type is "Static Site" (NOT "Web Service"). GitHub has to be
+#  connected to your DigitalOcean account first.
+#
+#  A Dockerfile + nginx.conf are still in the repo for the day this needs a
+#  real backend (e.g. querying MySQL). They are unused by this spec. If DO
+#  insists on auto-detecting the Dockerfile and building a container, rename it
+#  to Dockerfile.container and redeploy.
 # ============================================================================
 name: kia-urbex-dashboard
-region: nyc                       # closest DO region to Bogotá; sfo/tor also fine
+region: nyc                       # closest DO region to Bogotá
 
-services:
+static_sites:
   - name: web
-    # Build the container from the Dockerfile at the repo root.
-    dockerfile_path: Dockerfile
-    source_dir: /
+    source_dir: /                 # index.html lives at the repo root
 
     github:
       repo: nicolas04rodriguez-debug/KIA---Dashboards
       branch: main
-      deploy_on_push: true        # auto-redeploy on every push to main
+      deploy_on_push: true        # every push to main redeploys
 
-    http_port: 8080               # must match EXPOSE / nginx `listen`
-    instance_count: 1
-    instance_size_slug: apps-s-1vcpu-0.5gb   # smallest Basic tier (~$5/mo)
+    # No build step: the file is already the artifact.
+    index_document: index.html
+    error_document: index.html
+    catchall_document: index.html # single-page dashboard, all paths -> index
 
     routes:
       - path: /
-
-    health_check:
-      http_path: /
-      initial_delay_seconds: 10
-      period_seconds: 10
-      timeout_seconds: 3
-      success_threshold: 1
-      failure_threshold: 3
