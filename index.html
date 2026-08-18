@@ -2959,11 +2959,20 @@ function initUrbexHeatmap(DATA){
   function fitData(){ try{ const b=(loc||sec).getBounds();
     if(b.isValid()){ map.fitBounds(b,{padding:[16,16]});
       if(map.getSize().x>0) didFit=true; } }catch(e){} }
-  fitData();
+
+  // No automatic fit on load. Fitting the administrative bounds pulls the view
+  // out to zoom 9 to include Sumapaz — a rural locality that is most of the
+  // district's area and almost none of its cars — which shrinks the urban
+  // concentration this map exists to show. The opening view is therefore the
+  // pipeline's computed centre at city zoom, set once in L.map().setView().
+  // It is also deterministic: the previous fit depended on whether the data
+  // happened to arrive before or after the container had been laid out, so
+  // the static and API builds opened at different zooms.
+  // Reset still frames the full extent — see the reset handler below.
 
   function refresh(){ map.invalidateSize(false);
     try{ if(map.hasLayer(heat)) map.removeLayer(heat); }catch(e){}
-    heatOn(); if(!didFit) fitData(); }
+    heatOn(); }        // never re-frames: the user's zoom and pan are theirs
   window.addEventListener('resize',()=>map.invalidateSize(false));
   if('ResizeObserver' in window){ let pw=0;
     new ResizeObserver(es=>{ const w=es[0].contentRect.width; if(w>0&&pw===0) setTimeout(refresh,60); pw=w; }).observe($('hm-map')); }
@@ -3177,7 +3186,11 @@ function initUrbexHeatmap(DATA){
     $('hm-t-bounds').checked=false; try{ map.removeLayer(bounds); }catch(_){}
     $('hm-basemap').value='light';
     map.removeLayer(curBase); curBase=bases.light.addTo(map); curBase.bringToBack();
-    syncUI(); recompute(); didFit=false; fitData();
+    syncUI(); recompute();
+    // Reset returns to the view the map opened with, rather than fitting the
+    // administrative bounds: same frame every time, and no surprise jump out
+    // to rural Sumapaz.
+    try{ map.setView(S.center, 11); }catch(e){}
   };
   $('hm-fs').onclick=()=>{ const el=$('hm-mapcard');
     if(document.fullscreenElement) document.exitFullscreen(); else if(el.requestFullscreen) el.requestFullscreen(); };
