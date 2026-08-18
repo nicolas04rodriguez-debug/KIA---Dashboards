@@ -84,6 +84,12 @@ html,body{
 canvas{max-width:100%}
 img{max-width:100%}
 
+/* ...but never Leaflet's. It sizes its own canvases and hangs them inside
+   panes that are 0x0 by design, so a percentage cap resolves to zero and
+   collapses the heat and choropleth layers: they keep painting into their
+   backing store and render nothing. */
+.leaflet-container canvas{max-width:none}
+
 /* ── Shell ───────────────────────────────────────────────────────── */
 #view-app{display:flex;height:100vh;overflow:hidden}
 .main-area{flex:1;height:100vh;overflow-y:auto;display:flex;flex-direction:column;min-width:0;background:var(--bg)}
@@ -689,8 +695,12 @@ td.dim{color:var(--text-faint)}
   color:var(--text);
 }
 #hm-root *{box-sizing:border-box}
-/* a stale Chart.js canvas width must never widen its card (see design_system.css) */
-#hm-root canvas{max-width:100%}
+/* A stale Chart.js canvas width must never widen its card (see
+   design_system.css) — but scope this to the analysis charts. Leaflet's own
+   canvases sit in 0x0 panes, where max-width:100% resolves to zero and
+   silently collapses the heat and choropleth layers. */
+#hm-root .hm-canvas-wrap canvas{max-width:100%}
+#hm-root .leaflet-container canvas{max-width:none}
 body.hm-standalone{background:var(--bg);font-family:'Inter',system-ui,sans-serif}
 body.hm-standalone #hm-root{padding:28px 32px;max-width:1760px;margin:0 auto}
 
