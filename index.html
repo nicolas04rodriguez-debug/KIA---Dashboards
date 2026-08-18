@@ -642,6 +642,14 @@ td.dim{color:var(--text-faint)}
   .grid-3{grid-template-columns:minmax(0,1fr)}
 }
 
+/* Coverage disclosure under a ranking: states what the ranking leaves out. */
+.coverage-note{
+  margin-top:14px;padding:11px 13px;border-radius:var(--r-sm);
+  background:var(--surface-muted);border:1px solid var(--border-soft);
+  font-size:12px;color:var(--text-muted);line-height:1.55;
+}
+.coverage-note strong{color:#334155;font-weight:650}
+
 </style>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
@@ -1872,6 +1880,7 @@ function animCount(id, target, ms=800) {
 
 /* ─── Build model filter from data ───────────────────── */
 function buildModelFilter(leads) {
+  buildCityLabels(leads);          // canonical city names first
   fillSelect('f-model', leads, r => r.modelGroup);
   /* Localidad options come from the same data, most frequent first */
   fillSelect('f-city', leads, r => cityLabel(r.city));
@@ -2090,10 +2099,42 @@ function buildLegend(id, labels, colors, data, total) {
 
 function pct(v, total) { return total ? Math.round(v / total * 100) : 0; }
 
-/* Blank / literal "null" cities are a source-data gap — label them honestly */
-function cityLabel(c) {
+/* Cities arrive spelled inconsistently: "Bogotá" and "Bogota D.C." are the
+   same place, and casing is mixed ("MEDELLiN" next to "Cali"). Group on an
+   accent- and punctuation-insensitive key so one city is one entry, then show
+   the spelling that appears most often. Blank / literal "null" stays a
+   visible gap rather than being quietly folded into another city. */
+function cityKey(c) {
   const s = (c == null ? '' : String(c)).trim();
-  return (!s || s.toLowerCase() === 'null') ? 'Sin dato' : s;
+  if (!s || s.toLowerCase() === 'null') return null;
+  let k = s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+  k = k.replace(/[.,]/g, ' ').replace(/\s+/g, ' ').trim();
+  if (/^BOGOTA( D ?C)?$/.test(k)) k = 'BOGOTA';
+  return k;
+}
+
+const CITY_LABEL = {};
+function buildCityLabels(rows) {
+  const variants = {};
+  rows.forEach(r => {
+    const k = cityKey(r.city);
+    if (!k) return;
+    const raw = String(r.city).trim();
+    (variants[k] = variants[k] || {})[raw] = (variants[k][raw] || 0) + 1;
+  });
+  Object.keys(variants).forEach(k => {
+    let best = Object.entries(variants[k]).sort((a, b) => b[1] - a[1])[0][0];
+    if (best === best.toUpperCase()) {          // tidy the shouty ones
+      best = best.toLowerCase().replace(/(^|\s)\S/g, m => m.toUpperCase());
+    }
+    CITY_LABEL[k] = best;
+  });
+}
+
+function cityLabel(c) {
+  const k = cityKey(c);
+  if (!k) return 'Sin dato';
+  return CITY_LABEL[k] || k;
 }
 
 /* Geographic concentration — a compact ranking, not a second map */
@@ -2102,21 +2143,28 @@ function renderGeo(leads) {
   if (!el) return;
   const counts = {};
   leads.forEach(r => { const c = cityLabel(r.city); counts[c] = (counts[c]||0)+1; });
+  /* A "top cities" list should rank cities. Records with no city are a real
+     gap, but putting them second tells you nothing about geography — so they
+     are reported underneath instead of competing for a position. */
+  const missing = counts['Sin dato'] || 0;
+  delete counts['Sin dato'];
+
   const rows = Object.entries(counts).sort((a,b) => b[1]-a[1]).slice(0, 8);
   if (!rows.length) { el.innerHTML = ''; return; }
   const max = rows[0][1];
-  el.innerHTML = rows.map(([name, n], i) => {
-    const known = name !== 'Sin dato';
-    const fill  = known ? 'linear-gradient(90deg,#8B5CF6,#7C3AED)' : '#CBD5E1';
-    return `<div class="rank-row">
+  el.innerHTML = rows.map(([name, n], i) => `
+    <div class="rank-row">
       <span class="rank-num">${i+1}</span>
       <span class="rank-body">
-        <span class="rank-name"${known ? '' : ' style="color:#94A3B8;font-style:italic"'}>${name}</span>
-        <span class="rank-bar"><span class="rank-fill" style="width:${Math.round(n/max*100)}%;background:${fill}"></span></span>
+        <span class="rank-name">${name}</span>
+        <span class="rank-bar"><span class="rank-fill" style="width:${Math.round(n/max*100)}%;background:linear-gradient(90deg,#8B5CF6,#7C3AED)"></span></span>
       </span>
       <span class="rank-value">${n.toLocaleString('es-CO')}</span>
-    </div>`;
-  }).join('');
+    </div>`).join('')
+    + (missing ? `<div class="coverage-note">
+        <strong>${missing.toLocaleString('es-CO')}</strong> de ${leads.length.toLocaleString('es-CO')} leads
+        (${pct(missing, leads.length)}%) no traen ciudad registrada en la fuente y no aparecen en este ranking.
+      </div>` : '');
 }
 
 /* ─── Filters + sort ─────────────────────────────────── */
