@@ -797,7 +797,8 @@ body.hm-standalone #hm-root{padding:28px 32px;max-width:1760px;margin:0 auto}
   letter-spacing:.7px;text-transform:uppercase;margin-bottom:8px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
-#hm-root .hm-kpi .v{font-size:38px;font-weight:700;color:var(--text);line-height:1;letter-spacing:-1.1px;font-variant-numeric:tabular-nums}
+#hm-root .hm-kpi .v{font-size:38px;font-weight:700;color:var(--text);line-height:1;letter-spacing:-1.1px;font-variant-numeric:tabular-nums;white-space:nowrap}
+#hm-root .hm-kpi .v.long{font-size:30px;letter-spacing:-.8px}
 #hm-root .hm-kpi .s{font-size:12.5px;color:var(--text-muted);margin-top:8px;line-height:1.45;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
@@ -2897,7 +2898,7 @@ function initUrbexHeatmap(DATA){
 
   const $ = id => document.getElementById(id);
   const fmt = n => (n==null?'—':Math.round(Number(n)).toLocaleString('es-CO'));
-  const fmtV = n => '$ '+Math.round(Number(n)).toLocaleString('es-CO')+' M';
+  const fmtV = n => '$'+Math.round(Number(n)).toLocaleString('es-CO')+' M';
   const S = DATA.stats;
   const HAS_CHART = (typeof Chart !== 'undefined');
   const HAS_DIMS = !!(S.brands && S.brands.length && DATA.mb && DATA.mb.length);
@@ -2914,12 +2915,14 @@ function initUrbexHeatmap(DATA){
   const map = L.map('hm-map',{zoomControl:true,preferCanvas:true}).setView(S.center,11);
   L.control.scale({imperial:false}).addTo(map);
   const bases = {
-    light:L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:20,attribution:'&copy; OpenStreetMap &copy; CARTO'}),
-    voyager:L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:20,attribution:'&copy; OpenStreetMap &copy; CARTO'}),
-    dark:L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:20,attribution:'&copy; OpenStreetMap &copy; CARTO'})
+    light:L.layerGroup([L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,maxNativeZoom:16,attribution:'Tiles &copy; Esri &mdash; Esri, HERE, Garmin, OpenStreetMap contributors'}),L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,maxNativeZoom:16,attribution:'Tiles &copy; Esri &mdash; Esri, HERE, Garmin, OpenStreetMap contributors'})]),
+    voyager:L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,maxNativeZoom:19,attribution:'Tiles &copy; Esri &mdash; Esri, HERE, Garmin, OpenStreetMap contributors'}),
+    dark:L.layerGroup([L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,maxNativeZoom:16,attribution:'Tiles &copy; Esri &mdash; Esri, HERE, Garmin, OpenStreetMap contributors'}),L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,maxNativeZoom:16,attribution:'Tiles &copy; Esri &mdash; Esri, HERE, Garmin, OpenStreetMap contributors'})]),
   };
   let curBase = bases.light.addTo(map);
-  $('hm-basemap').onchange=e=>{ map.removeLayer(curBase); curBase=bases[e.target.value].addTo(map); curBase.bringToBack(); };
+  // bases are L.layerGroup (base + labels) or a plain tile layer; only the
+  // latter has bringToBack, and every base lives in the tile pane anyway
+  $('hm-basemap').onchange=e=>{ map.removeLayer(curBase); curBase=bases[e.target.value].addTo(map); if(curBase.bringToBack) curBase.bringToBack(); };
 
   // Sequential ramp (ColorBrewer YlOrRd-6): monotonic lightness with wide,
   // hue-assisted steps (min adjacent luminance gap .108 vs .066 of a reds-only
@@ -3126,8 +3129,13 @@ function initUrbexHeatmap(DATA){
       '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4"/></svg>',
       '<svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
     ];
-    $('hm-kpis').innerHTML = cards.map((c,i)=>
-      `<div class="hm-kpi ${c[0]}"><div class="ico">${KPI_ICONS[i]||''}</div><div class="l">${c[1]}</div><div class="v" id="hm-kv${i}">—</div><div class="s">${c[4]}</div></div>`).join('');
+    $('hm-kpis').innerHTML = cards.map((c,i)=>{
+      // a value like "$678.146 M" needs less type size than "27.291"; decide
+      // from the final formatted string so the card never wraps mid-number
+      const final = c[3] ? fmtV(c[2]) : fmt(c[2]);
+      const cls = final.length > 8 ? ' long' : '';
+      return `<div class="hm-kpi ${c[0]}"><div class="ico">${KPI_ICONS[i]||''}</div><div class="l">${c[1]}</div><div class="v${cls}" id="hm-kv${i}">—</div><div class="s">${c[4]}</div></div>`;
+    }).join('');
     cards.forEach((c,i)=>countUp($('hm-kv'+i), c[2], c[3]));
   }
   if(S.demo) $('hm-demo').innerHTML=' <span class="hm-demo">DATOS DE PRUEBA</span>';
@@ -3296,7 +3304,7 @@ function initUrbexHeatmap(DATA){
     $('hm-t-points').checked=false; try{ map.removeLayer(points); }catch(_){}
     $('hm-t-bounds').checked=false; try{ map.removeLayer(bounds); }catch(_){}
     $('hm-basemap').value='light';
-    map.removeLayer(curBase); curBase=bases.light.addTo(map); curBase.bringToBack();
+    map.removeLayer(curBase); curBase=bases.light.addTo(map); if(curBase.bringToBack) curBase.bringToBack();
     syncUI(); recompute();
     // Reset returns to the view the map opened with, rather than fitting the
     // administrative bounds: same frame every time, and no surprise jump out
@@ -3454,8 +3462,7 @@ window.hmEmptyState = function(){
   if(!el || el._hmEmpty || window.UrbexHeatmap || typeof L==='undefined') return;
   el._hmEmpty=true;
   var m=L.map('hm-map',{zoomControl:true,preferCanvas:true}).setView([4.65,-74.10],11);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-    {subdomains:'abcd',maxZoom:20,attribution:'&copy; OpenStreetMap &copy; CARTO'}).addTo(m);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,maxNativeZoom:16,attribution:'Tiles &copy; Esri &mdash; Esri, HERE, Garmin, OpenStreetMap contributors'}).addTo(m);
   var note=document.createElement('div'); note.className='hm-empty-note';
   note.innerHTML='<b>Mapa de calor sin datos todavía</b>La capa aparece una vez geocodificadas las direcciones.';
   el.parentNode.appendChild(note);
