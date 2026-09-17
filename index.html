@@ -158,15 +158,8 @@ img{max-width:100%}
 .meta-value{font-size:12px;font-weight:600;color:#334155}
 .meta-value.sm{font-size:11.5px;font-weight:500;color:var(--text-muted)}
 
-.sidebar-footer{padding:12px 20px 16px;border-top:1px solid var(--border-soft);display:flex;align-items:center;gap:9px}
-.avatar{
-  width:30px;height:30px;border-radius:var(--r-pill);flex-shrink:0;
-  background:linear-gradient(135deg,var(--primary),var(--primary-violet));
-  color:#fff;font-size:11px;font-weight:700;
-  display:flex;align-items:center;justify-content:center;letter-spacing:.3px;
-}
-.acct-name{font-size:12.5px;font-weight:600;color:#334155;line-height:1.3}
-.acct-role{font-size:10.5px;color:var(--text-faint)}
+/* the status blocks (data date, coverage) close the sidebar; no account row */
+.sidebar-meta{padding-bottom:18px}
 
 /* ── Page header ─────────────────────────────────────────────────── */
 .page-head{
@@ -183,6 +176,19 @@ img{max-width:100%}
   font-size:11.5px;font-weight:600;color:var(--text-muted);
 }
 .data-stamp .dot{width:6px;height:6px;border-radius:50%;background:var(--good);flex-shrink:0}
+
+/* One computed sentence that tells the reader what matters on this page
+   before they read a single chart. Hidden until the data fills it. */
+.page-insight{
+  display:flex;align-items:flex-start;gap:10px;
+  margin-top:14px;padding:11px 15px 11px 13px;max-width:640px;
+  background:var(--primary-tint);border-left:3px solid var(--primary);
+  border-radius:0 var(--r-md) var(--r-md) 0;
+  font-size:13.5px;color:#334155;line-height:1.55;
+}
+.page-insight:empty{display:none}
+.page-insight strong{color:var(--primary-dark);font-weight:650}
+.page-insight svg{width:15px;height:15px;flex-shrink:0;margin-top:2px;stroke:var(--primary);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
 /* ── Cards ───────────────────────────────────────────────────────── */
 .card{
@@ -209,7 +215,18 @@ img{max-width:100%}
   transition:transform var(--ease),box-shadow var(--ease);
 }
 .kpi-card:hover{transform:translateY(-1px);box-shadow:var(--shadow-hover)}
-.kpi-card.feature{border-color:#DDD3F7;background:linear-gradient(160deg,var(--primary-tint) 0%,var(--surface) 62%)}
+/* The featured card carries the page's headline figure. Solid brand colour
+   so the hierarchy reads from across the room; the other three stay white. */
+.kpi-card.feature{
+  background:linear-gradient(135deg,var(--primary) 0%,var(--primary-hover) 100%);
+  border-color:transparent;box-shadow:0 8px 24px rgba(124,58,237,.28);
+}
+.kpi-card.feature:hover{box-shadow:0 12px 30px rgba(124,58,237,.34)}
+.kpi-card.feature .kpi-icon{background:rgba(255,255,255,.18);color:#fff}
+.kpi-card.feature .kpi-label{color:rgba(255,255,255,.72)}
+.kpi-card.feature .kpi-value{color:#fff}
+.kpi-card.feature .kpi-sub{color:rgba(255,255,255,.8)}
+.kpi-card.feature .kpi-sub strong{color:#fff}
 .kpi-icon{
   width:34px;height:34px;border-radius:10px;
   background:var(--primary-soft);color:var(--primary);
@@ -615,6 +632,14 @@ td.dim{color:var(--text-faint)}
   .docs-toc{position:static;flex-direction:row;flex-wrap:wrap;margin-bottom:8px}
 }
 
+/* ── Entrance ────────────────────────────────────────────────────── */
+/* Cards rise into place in a short cascade when a page appears. 30 ms per
+   card, 320 ms each, capped by the JS to the first dozen elements — a beat,
+   not a show. Off entirely for people who asked their OS for less motion. */
+@keyframes riseIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.rise-in{animation:riseIn 320ms cubic-bezier(.2,.7,.2,1) both}
+@media (prefers-reduced-motion:reduce){.rise-in{animation:none}}
+
 /* ── Scrollbar ───────────────────────────────────────────────────── */
 ::-webkit-scrollbar{width:9px;height:9px}
 ::-webkit-scrollbar-track{background:transparent}
@@ -766,6 +791,7 @@ body.hm-standalone #hm-root{padding:28px 32px;max-width:1760px;margin:0 auto}
 
 /* ── Page header (replaces the old dark hero band) ───────────────── */
 #hm-root .hm-hero{margin-bottom:26px}
+#hm-root .page-insight{margin-top:14px}
 #hm-root .hm-h1{
   font-size:30px;font-weight:700;letter-spacing:-.5px;
   color:var(--text);margin:0 0 6px;line-height:1.15;
@@ -785,7 +811,14 @@ body.hm-standalone #hm-root{padding:28px 32px;max-width:1760px;margin:0 auto}
   transition:transform var(--ease),box-shadow var(--ease);
 }
 #hm-root .hm-kpi:hover{transform:translateY(-1px);box-shadow:var(--shadow-hover)}
-#hm-root .hm-kpi.primary{border-color:#DDD3F7;background:linear-gradient(160deg,var(--primary-tint) 0%,var(--surface) 62%)}
+#hm-root .hm-kpi.primary{
+  background:linear-gradient(135deg,var(--primary) 0%,var(--primary-hover) 100%);
+  border-color:transparent;box-shadow:0 8px 24px rgba(124,58,237,.28);
+}
+#hm-root .hm-kpi.primary .ico{background:rgba(255,255,255,.18);color:#fff}
+#hm-root .hm-kpi.primary .l{color:rgba(255,255,255,.72)}
+#hm-root .hm-kpi.primary .v{color:#fff}
+#hm-root .hm-kpi.primary .s{color:rgba(255,255,255,.8)}
 #hm-root .hm-kpi .ico{
   width:34px;height:34px;border-radius:10px;margin-bottom:14px;
   background:var(--primary-soft);color:var(--primary);
@@ -1130,14 +1163,6 @@ body.hm-standalone #hm-root{padding:28px 32px;max-width:1760px;margin:0 auto}
         <div class="meta-value sm">Bogot&aacute; D.C. &middot; Colombia</div>
       </div>
     </div>
-
-    <div class="sidebar-footer">
-      <div class="avatar">KU</div>
-      <div>
-        <div class="acct-name">KIA &middot; Urbex</div>
-        <div class="acct-role">Inteligencia de mercado</div>
-      </div>
-    </div>
   </aside>
 
   <!-- Main area -->
@@ -1152,6 +1177,7 @@ body.hm-standalone #hm-root{padding:28px 32px;max-width:1760px;margin:0 auto}
     <h2 class="hm-h1">Inteligencia geográfica<span id="hm-demo"></span></h2>
     <div class="hm-sub">Concentración, marcas, antigüedad y valor del parque automotor en Bogotá D.C.
       Localidades y sectores catastrales UAECD, geocodificados con Google Maps.</div>
+    <div class="page-insight" id="hm-insight"></div>
   </div>
 
   <div class="hm-kpis" id="hm-kpis"></div>
@@ -1305,6 +1331,7 @@ body.hm-standalone #hm-root{padding:28px 32px;max-width:1760px;margin:0 auto}
           <div>
             <h1 class="page-title">Leads</h1>
             <p class="page-sub">Oportunidades comerciales del mercado secundario, derivadas del registro vehicular y los datos de propiedad.</p>
+            <div class="page-insight" id="insight-leads"></div>
           </div>
           <div class="page-head-aside">
             <span class="data-stamp"><span class="dot"></span><span class="js-data-date">&mdash;</span></span>
@@ -1496,6 +1523,7 @@ body.hm-standalone #hm-root{padding:28px 32px;max-width:1760px;margin:0 auto}
           <div>
             <h1 class="page-title">Propietarios</h1>
             <p class="page-sub">Qui&eacute;n posee los veh&iacute;culos y d&oacute;nde se concentran las oportunidades de flota.</p>
+            <div class="page-insight" id="insight-owners"></div>
           </div>
           <div class="page-head-aside">
             <span class="data-stamp"><span class="dot"></span><span class="js-data-date">&mdash;</span></span>
@@ -1863,6 +1891,7 @@ function tryUnlock() {
     applyFilters();
     buildOwnerGroups(ALL);
     loadHeatmap(pw);
+    if (window.animateSection) animateSection('leads');
   } catch(e) {
     err.textContent = 'Código incorrecto. Intenta de nuevo.';
     document.getElementById('pw-input').value = '';
@@ -1954,6 +1983,21 @@ function renderKPIs(leads) {
   const set = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
 
   set('kpi-total-sub',       `<strong>${models}</strong> modelos KIA identificados`);
+
+  /* The headline: which action dominates, and how reachable the base is.
+     Phrased as a ratio when it rounds cleanly ("3 de cada 4"), else as %. */
+  const svc = {};
+  leads.forEach(r => { svc[r.serviceTag] = (svc[r.serviceTag]||0)+1; });
+  const [topTag, topN] = Object.entries(svc).sort((a,b) => b[1]-a[1])[0] || ['', 0];
+  const ratio = (n, of) => {
+    const p = n / of;
+    for (const d of [2,3,4,5]) { const k = Math.round(p*d); if (k >= 1 && Math.abs(k/d - p) < 0.035) return `${k} de cada ${d}`; }
+    return `el ${Math.round(p*100)}%`;
+  };
+  const tagName = { 'Trade-in':'trade-in', 'Warranty':'garantía', 'Maintenance':'mantenimiento' }[topTag] || topTag;
+  set('insight-leads', SVG_BULB +
+    `<span><strong>${ratio(topN, total)}</strong> leads son candidatos a <strong>${tagName}</strong>, ` +
+    `y <strong>${ratio(contactable, total)}</strong> tienen email o teléfono para contactarlos.</span>`);
   set('kpi-contact-sub',     `<strong>${pct(contactable)}%</strong> con email o teléfono`);
   set('kpi-individuals-sub', `<strong>${pct(individuals)}%</strong> · alcance directo al consumidor`);
   set('kpi-companies-sub',   `<strong>${pct(companies)}%</strong> · objetivos B2B y flotas`);
@@ -2030,6 +2074,26 @@ const donutCenter = {
   }
 };
 
+const SVG_BULB = '<svg viewBox="0 0 24 24"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1V17h6v-.2c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2z"/></svg>';
+
+/* D ── cards rise into place in a short cascade when a page appears */
+window.animateSection = function (tab) {
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const sec = document.getElementById('section-' + tab);
+  if (!sec) return;
+  const els = sec.querySelectorAll('.page-head, .kpi-card, .section-head, .card, .table-card, .hm-kpi, .hm-card, .hm-chart-card');
+  els.forEach((el, i) => {
+    el.classList.remove('rise-in');
+    void el.offsetWidth;                       // restart the animation
+    el.style.animationDelay = (Math.min(i, 12) * 30) + 'ms';
+    el.classList.add('rise-in');
+  });
+  /* Safety: the class starts elements at opacity 0. If the animation never
+     plays (throttled tab, odd embedder) they would stay invisible, so strip
+     the class once it has had time to finish. Visible is the resting state. */
+  setTimeout(() => els.forEach(el => { el.classList.remove('rise-in'); el.style.animationDelay = ''; }), 900);
+};
+
 const CHARTS = {};
 function mountChart(id, cfg) {
   if (CHARTS[id]) CHARTS[id].destroy();
@@ -2056,18 +2120,27 @@ function buildCharts(leads) {
     yrCounts[r.yearBand]        = (yrCounts[r.yearBand]       ||0)+1;
   });
 
-  const topModels   = Object.entries(modelCounts).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  /* Six bars carry the story; the long tail of two- and four-lead models
+     collapses into one "Otros" bar so the card stays dense and scannable. */
+  const sorted = Object.entries(modelCounts).sort((a,b)=>b[1]-a[1]);
+  const TOP = 6;
+  let topModels = sorted.slice(0, TOP);
+  const tail = sorted.slice(TOP);
+  if (tail.length) {
+    topModels = topModels.concat([[`Otros (${tail.length} modelos)`, tail.reduce((s,e)=>s+e[1],0)]]);
+  }
   const modelLabels = topModels.map(e=>e[0]);
   const modelData   = topModels.map(e=>e[1]);
 
-  const mh = Math.max(topModels.length * 32 + 60, 260);
+  const mh = Math.max(topModels.length * 34 + 40, 230);
   const wrap = document.getElementById('models-wrap');
   if (wrap) wrap.style.height = mh + 'px';
 
   /* dominant models carry KIA red/orange; the tail fades to neutral */
   const MODEL_PAL = ['#BB162B','#DC2626','#EA580C','#F59E0B','#8B5CF6',
                      '#A78BFA','#C4B5FD','#CBD5E1','#D8DEE7','#E2E8F0'];
-  const modelColors = modelLabels.map((_,i) => MODEL_PAL[Math.min(i, MODEL_PAL.length-1)]);
+  const modelColors = modelLabels.map((l,i) =>
+    l.startsWith('Otros') ? '#CBD5E1' : MODEL_PAL[Math.min(i, MODEL_PAL.length-1)]);
 
   /* Chart 1 — models, horizontal bar with direct value labels */
   mountChart('chart-models', {
@@ -2687,6 +2760,15 @@ function buildOwnerGroups(leads) {
 
   OWNER_TOTALS = { owners, multi, vehicles, firms, maxFleet: max?.vehicleCount || 0,
                    maxName: max?.ownerName || '' };
+
+  const multiVeh = OWNER_GROUPS.filter(g => g.vehicleCount >= 2).reduce((s,g) => s + g.vehicleCount, 0);
+  const el = document.getElementById('insight-owners');
+  if (el) el.innerHTML = SVG_BULB + `<span>` +
+    (multi
+      ? `<strong>${multi}</strong> propietarios tienen más de un vehículo y concentran <strong>${multiVeh}</strong> unidades; ` +
+        `la flota más grande es <strong>${max.ownerName}</strong> con <strong>${max.vehicleCount}</strong>.`
+      : `Cada propietario tiene un solo vehículo: no hay flotas en este universo.`) +
+    `</span>`;
 }
 
 let OWNER_TOTALS = null, OWNER_RAIL_DONE = false;
@@ -2838,6 +2920,7 @@ function switchTab(tab) {
   }
   if (tab==='owners' && !OWNER_SHOWN.length) renderOwnerTable();
   if (tab==='export' && typeof updateExportSummary === 'function') updateExportSummary();
+  if (window.animateSection) animateSection(tab);
   /* charts sized while hidden keep a stale width — re-measure on reveal */
   if (window.resizeDashCharts) setTimeout(window.resizeDashCharts, 30);
   if (tab==='heatmap') {
@@ -3137,6 +3220,20 @@ function initUrbexHeatmap(DATA){
       return `<div class="hm-kpi ${c[0]}"><div class="ico">${KPI_ICONS[i]||''}</div><div class="l">${c[1]}</div><div class="v${cls}" id="hm-kv${i}">—</div><div class="s">${c[4]}</div></div>`;
     }).join('');
     cards.forEach((c,i)=>countUp($('hm-kv'+i), c[2], c[3]));
+
+    /* Headline: how concentrated the metric is. Top locality share and the
+       share held by the top three, from the same values the ranking uses. */
+    const ins = $('hm-insight');
+    if (ins && tot > 0) {
+      const sorted = CUR.vals.map((v,i)=>({v,i})).sort((a,b)=>b.v-a.v);
+      const p1 = Math.round(sorted[0].v / tot * 100);
+      const p3 = Math.round(sorted.slice(0,3).reduce((a,x)=>a+x.v,0) / tot * 100);
+      const what = CUR.unit==='$M' ? 'del valor registrado' : 'de los carros';
+      const nice = n => n ? n.charAt(0) + n.slice(1).toLowerCase() : n;
+      ins.innerHTML = '<svg viewBox="0 0 24 24"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1V17h6v-.2c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2z"/></svg>' +
+        `<span><strong>${nice(LOCS[sorted[0].i])}</strong> concentra el <strong>${p1}%</strong> ${what}; ` +
+        `las tres primeras localidades suman el <strong>${p3}%</strong>.</span>`;
+    }
   }
   if(S.demo) $('hm-demo').innerHTML=' <span class="hm-demo">DATOS DE PRUEBA</span>';
 
