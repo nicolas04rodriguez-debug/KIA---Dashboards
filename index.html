@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KIA — Secondary Market Intelligence</title>
+<title>KIA × Urbex — Inteligencia del mercado secundario</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%237C3AED'/%3E%3Ctext x='16' y='22.5' text-anchor='middle' font-family='Inter,Arial,sans-serif' font-size='17' font-weight='700' fill='white'%3EK%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..800&display=swap" rel="stylesheet">
 <style id="ds">
@@ -270,7 +271,7 @@ select{
 .search-wrap input{padding-left:33px}
 
 /* ── Filter bar ──────────────────────────────────────────────────── */
-.filter-bar{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr;gap:10px;align-items:end}
+.filter-bar{display:grid;grid-template-columns:minmax(0,2fr) repeat(5,minmax(0,1fr));gap:10px;align-items:end}
 .chip{
   display:inline-flex;align-items:center;gap:6px;
   padding:5px 11px;border-radius:var(--r-pill);
@@ -393,7 +394,7 @@ td.dim{color:var(--text-faint)}
 /* stacked legend: label · value · share, one row each */
 .legend-stack{display:flex;flex-direction:column;gap:0;margin-top:18px}
 .legend-stack .legend-item{
-  display:grid;grid-template-columns:9px 1fr auto auto;
+  display:grid;grid-template-columns:9px minmax(0,1fr) auto auto;
   align-items:center;gap:10px;
   padding:9px 0;border-bottom:1px solid var(--border-soft);font-size:13px;
 }
@@ -627,9 +628,9 @@ td.dim{color:var(--text-faint)}
 @media (max-width:1280px){
   .sidebar{width:216px;min-width:216px}
   .content{padding:24px 24px 40px}
-  .kpi-grid{grid-template-columns:repeat(2,1fr)}
-  .kpi-grid.cols-3{grid-template-columns:repeat(3,1fr)}
-  .filter-bar{grid-template-columns:repeat(3,1fr)}
+  .kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kpi-grid.cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .filter-bar{grid-template-columns:repeat(3,minmax(0,1fr))}
   .page-title{font-size:26px}
 }
 @media (max-width:1280px){
@@ -655,6 +656,65 @@ td.dim{color:var(--text-faint)}
   font-size:12px;color:var(--text-muted);line-height:1.55;
 }
 .coverage-note strong{color:#334155;font-weight:650}
+
+/* ── Phone (≤ 768px) ─────────────────────────────────────────────── */
+/* The product is designed for desktop, but a stakeholder will open the link
+   on a phone in a meeting. This keeps it usable there: the sidebar becomes a
+   horizontal nav strip, every grid collapses to one column, tables keep their
+   own horizontal scroll, and the map shortens so the ranking stays reachable. */
+@media (max-width:768px){
+  #view-app{flex-direction:column}
+  .sidebar{
+    width:100%;min-width:0;height:auto;flex:none;
+    border-right:none;border-bottom:1px solid var(--border);
+    overflow:visible;position:sticky;top:0;z-index:20;
+  }
+  .sidebar-brand{padding:12px 16px 8px}
+  .brand-lockup{margin-bottom:0}
+  .brand-desc,.nav-label,.nav-sep,.sidebar-spacer,.sidebar-meta,.sidebar-footer{display:none}
+  .sidebar-nav{
+    flex-direction:row;gap:4px;padding:0 10px 10px;
+    overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;
+  }
+  .sidebar-nav::-webkit-scrollbar{display:none}
+  .nav-item{width:auto;flex:0 0 auto;white-space:nowrap;padding:8px 12px;font-size:13px}
+  .nav-item.locked::after{margin-left:6px}
+
+  .main-area{height:auto;flex:1;min-height:0}
+  .content{padding:16px 16px 40px}
+  .page-head{flex-direction:column;gap:10px;margin-bottom:18px}
+  .page-title{font-size:22px}
+  .page-sub{font-size:13px}
+  .section-head{margin:24px 0 12px}
+
+  .kpi-grid,.kpi-grid.cols-3,
+  .grid-2-1,.grid-1-1,.grid-3,.grid-rail,.filter-bar,.opt-grid{grid-template-columns:minmax(0,1fr)}
+  .kpi-card{padding:16px 18px}
+  .kpi-value{font-size:30px}
+  .card-pad{padding:18px 18px}
+  .rail{flex-direction:column;position:static}
+
+  .table-top{padding:16px 16px 12px}
+  .table-title-row{flex-direction:column;align-items:flex-start;gap:10px}
+  .table-actions{width:100%}
+  .table-actions .btn{flex:1;justify-content:center}
+  thead th{padding:10px 12px}
+  tbody td{padding:10px 12px}
+  .pagination{flex-direction:column;align-items:flex-start;gap:10px;padding:12px 16px}
+
+  .summary-bar{flex-direction:column;align-items:stretch}
+  .summary-bar .btn{justify-content:center}
+  .docs-layout{grid-template-columns:minmax(0,1fr)}
+
+  .modal{padding:22px}
+  .gate-inner{width:min(376px,calc(100vw - 32px))}
+
+  /* definition tables: let the monospace field column wrap instead of
+     forcing the whole table past the viewport */
+  .def-table{font-size:12.5px}
+  .def-table td:first-child,.def-table th:first-child{white-space:normal;word-break:break-word}
+  .def-table td,.def-table th{padding:8px 10px}
+}
 
 </style>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -718,7 +778,7 @@ body.hm-standalone #hm-root{padding:28px 32px;max-width:1760px;margin:0 auto}
 }
 
 /* ── KPI cards ───────────────────────────────────────────────────── */
-#hm-root .hm-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px}
+#hm-root .hm-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:22px}
 #hm-root .hm-kpi{
   background:var(--surface);border:1px solid var(--border);
   border-radius:var(--r-lg);padding:20px 22px;box-shadow:var(--shadow-card);
@@ -754,6 +814,12 @@ body.hm-standalone #hm-root{padding:28px 32px;max-width:1760px;margin:0 auto}
   letter-spacing:.6px;text-transform:uppercase;
 }
 #hm-root .hm-spacer{flex:1}
+#hm-root .hm-scope-note{
+  flex-basis:100%;font-size:12px;color:var(--text-muted);line-height:1.5;
+  padding:8px 12px;border-radius:var(--r-sm);
+  background:var(--surface-muted);border:1px solid var(--border-soft);
+}
+#hm-root .hm-scope-note b{color:#334155;font-weight:650}
 
 #hm-root select,#hm-root input[type=search]{
   padding:9px 12px;border:1px solid var(--border);border-radius:var(--r-sm);
@@ -817,7 +883,7 @@ body.hm-standalone #hm-root{padding:28px 32px;max-width:1760px;margin:0 auto}
 #hm-root .hm-rank-sub{font-size:12px;color:var(--text-muted);margin-top:3px;line-height:1.45}
 #hm-root .hm-ranklist{overflow-y:auto;flex:1;max-height:calc(68vh - 62px);min-height:500px}
 #hm-root .hm-row{
-  display:grid;grid-template-columns:22px 1fr auto;gap:11px;align-items:center;
+  display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:11px;align-items:center;
   padding:10px 16px;border-bottom:1px solid var(--hair);cursor:pointer;
   transition:background var(--ease);
 }
@@ -855,7 +921,7 @@ body.hm-standalone #hm-root{padding:28px 32px;max-width:1760px;margin:0 auto}
 #hm-root .hm-subtabs button:not(.on):hover{color:var(--text)}
 
 /* ── Analysis grid ───────────────────────────────────────────────── */
-#hm-root .hm-agrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+#hm-root .hm-agrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
 #hm-root .hm-agrid .wide{grid-column:1/-1}
 #hm-root .hm-tablewrap{overflow-x:auto}
 #hm-root table.hm-xt{border-collapse:collapse;width:100%;font-size:12px}
@@ -878,13 +944,13 @@ body.hm-standalone #hm-root{padding:28px 32px;max-width:1760px;margin:0 auto}
   box-shadow:inset 0 0 0 1px rgba(15,23,42,.06);
 }
 #hm-root .hm-sect-row{
-  display:grid;grid-template-columns:26px 1fr auto;gap:11px;align-items:center;
+  display:grid;grid-template-columns:26px minmax(0,1fr) auto;gap:11px;align-items:center;
   padding:9px 16px;border-bottom:1px solid var(--hair);
 }
 #hm-root .hm-sect-row:hover{background:var(--bg)}
 
 /* ── Analysis charts ─────────────────────────────────────────────── */
-#hm-root .hm-charts{display:grid;grid-template-columns:1.35fr 1fr;gap:16px;margin-top:16px}
+#hm-root .hm-charts{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:16px;margin-top:16px}
 #hm-root .hm-chart-card{
   background:var(--surface);border:1px solid var(--border);
   border-radius:var(--r-lg);padding:22px 24px;box-shadow:var(--shadow-card);
@@ -951,11 +1017,25 @@ body.hm-standalone #hm-root{padding:28px 32px;max-width:1760px;margin:0 auto}
 /* ── Responsive ──────────────────────────────────────────────────── */
 @media (max-width:1400px){#hm-root .hm-kpi .v{font-size:34px}}
 @media (max-width:1200px){
-  #hm-root .hm-charts{grid-template-columns:1fr}
-  #hm-root .hm-agrid{grid-template-columns:1fr}
+  #hm-root .hm-charts{grid-template-columns:minmax(0,1fr)}
+  #hm-root .hm-agrid{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:768px){
+  #hm-root .hm-kpis{grid-template-columns:minmax(0,1fr)}
+  #hm-root .hm-kpi .v{font-size:30px}
+  #hm-root .hm-toolbar{padding:12px 14px;gap:12px}
+  #hm-root .hm-tgroup.inline{flex-wrap:wrap}
+  #hm-root input[type=search]{width:100%}
+  #hm-root #hm-map{height:52vh;min-height:340px}
+  #hm-root .hm-legend{width:calc(100% - 32px);left:16px;bottom:16px;padding:10px 12px}
+  #hm-root .hm-h1{font-size:22px}
+  #hm-root .hm-sub{font-size:13px}
+  #hm-root .hm-subtabs{gap:18px}
+  #hm-root .hm-key{white-space:normal;display:inline}
+  #hm-root .hm-callout{gap:6px 10px}
 }
 @media (max-width:1080px){
-  #hm-root .hm-kpis{grid-template-columns:repeat(2,1fr)}
+  #hm-root .hm-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
   #hm-root .hm-main{flex-direction:column}
   #hm-root .hm-rankcard{width:auto;flex:none}
   #hm-root .hm-ranklist{max-height:360px;min-height:0}
@@ -1132,6 +1212,7 @@ body.hm-standalone #hm-root{padding:28px 32px;max-width:1760px;margin:0 auto}
           <option value="dark">Oscuro</option>
         </select>
       </div>
+      <div class="hm-scope-note" id="hm-scope-note" style="display:none"></div>
     </div>
   </div>
 
@@ -1460,7 +1541,7 @@ body.hm-standalone #hm-root{padding:28px 32px;max-width:1760px;margin:0 auto}
                 <button class="btn btn-primary" onclick="exportOwnerCSV()"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Exportar CSV</button>
               </div>
             </div>
-            <div class="filter-bar" style="grid-template-columns:2fr 1fr 1fr 1fr">
+            <div class="filter-bar" style="grid-template-columns:minmax(0,2fr) repeat(3,minmax(0,1fr))">
               <div class="field">
                 <label class="field-label" for="fo-search">Buscar</label>
                 <div class="search-wrap">
@@ -1752,7 +1833,7 @@ body.hm-standalone #hm-root{padding:28px 32px;max-width:1760px;margin:0 auto}
       <button class="gate-btn" onclick="tryUnlock()">Desbloquear dashboard</button>
     </div>
     <div class="gate-footer">
-      <div class="gate-powered">Powered by Urbex · Bosk Capital · Confidencial</div>
+      <div class="gate-powered">Powered by Urbex · Confidencial</div>
     </div>
   </div>
 </div>
@@ -2940,8 +3021,28 @@ function initUrbexHeatmap(DATA){
 
   // ---------- heat + points layers ----------
   let heat=null, points=null;
+  // The map is about Bogotá D.C. Owner addresses geocode all over Colombia —
+  // and a few land in Venezuela or Brazil, which are plainly geocoding
+  // misses. Drawing them makes a city map look like a national one, so the
+  // heat and point layers stay inside the district's extent and the toolbar
+  // says how much is left out. The KPIs already separate "carros en Bogotá"
+  // from "carros mapeados", so nothing is hidden from the figures.
+  const BOG = {s:3.70, n:4.90, w:-74.50, e:-73.90};
+  const inBogota = p => p[0]>=BOG.s && p[0]<=BOG.n && p[1]>=BOG.w && p[1]<=BOG.e;
+
   function buildPoints(){
-    const pts = DATA.points.filter(p=>(st.quality==='all'||p[3]===st.quality) && pWeight(p)>0);
+    const all = DATA.points.filter(p=>(st.quality==='all'||p[3]===st.quality) && pWeight(p)>0);
+    const pts = all.filter(inBogota);
+    const out = all.length - pts.length;
+    const outCars = all.reduce((a,p)=>a+(inBogota(p)?0:(p[2]||0)),0);
+    const note = $('hm-scope-note');
+    if(note){
+      note.style.display = out ? '' : 'none';
+      note.innerHTML = out
+        ? `Mostrando <b>Bogotá D.C.</b> &middot; ${fmt(out)} ubicaciones (${fmt(outCars)} carros) ` +
+          `est&aacute;n fuera del distrito y no se dibujan en el mapa.`
+        : '';
+    }
     const ws = pts.map(pWeight);
     const cap = Math.max(2, quantile(ws,.97));
     if(heat) map.removeLayer(heat);
