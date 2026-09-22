@@ -1,8 +1,25 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es-CO">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- A gated tool holding personal data must never be indexed. -->
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="description" content="Plataforma de inteligencia del mercado secundario KIA en Bogotá: leads, propietarios y mapa de calor del parque automotor. Acceso restringido.">
+<meta name="theme-color" content="#7C3AED">
+<!-- Link previews (WhatsApp, Slack, Teams). __ORIGIN__ is filled at serve time. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="KIA × Urbex">
+<meta property="og:title" content="KIA × Urbex — Inteligencia del mercado secundario">
+<meta property="og:description" content="Leads, propietarios y mapa de calor del parque automotor KIA en Bogotá D.C. Acceso restringido.">
+<meta property="og:url" content="__ORIGIN__/">
+<meta property="og:image" content="__ORIGIN__/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="es_CO">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="KIA × Urbex — Inteligencia del mercado secundario">
+<meta name="twitter:image" content="__ORIGIN__/og.png">
 <title>KIA × Urbex — Inteligencia del mercado secundario</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%237C3AED'/%3E%3Ctext x='16' y='22.5' text-anchor='middle' font-family='Inter,Arial,sans-serif' font-size='17' font-weight='700' fill='white'%3EK%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1892,6 +1909,7 @@ function tryUnlock() {
     buildOwnerGroups(ALL);
     loadHeatmap(pw);
     if (window.animateSection) animateSection('leads');
+    track('login', { build: 'static' });
   } catch(e) {
     err.textContent = 'Código incorrecto. Intenta de nuevo.';
     document.getElementById('pw-input').value = '';
@@ -2073,6 +2091,13 @@ const donutCenter = {
     ctx.restore();
   }
 };
+
+/* Usage analytics. Only EVENT NAMES and category values leave the page —
+   never a search string, a name, an e-mail or a phone. If gtag is absent
+   (no measurement id configured) every call is a no-op. */
+function track(name, params) {
+  try { if (typeof gtag === 'function') gtag('event', name, params || {}); } catch (_) {}
+}
 
 const SVG_BULB = '<svg viewBox="0 0 24 24"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1V17h6v-.2c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2z"/></svg>';
 
@@ -2647,6 +2672,7 @@ function activeFilterChips() {
 function runExport() {
   const d = DATASETS[EXPORT_DS];
   if (!d) return;
+  track('export', { dataset: EXPORT_DS, gated: !!d.locked });
   if (d.locked) requireExportAuth(d.run); else d.run();
 }
 
@@ -2921,6 +2947,7 @@ function switchTab(tab) {
   if (tab==='owners' && !OWNER_SHOWN.length) renderOwnerTable();
   if (tab==='export' && typeof updateExportSummary === 'function') updateExportSummary();
   if (window.animateSection) animateSection(tab);
+  if (typeof track === 'function') track('tab_view', { tab: tab });
   /* charts sized while hidden keep a stale width — re-measure on reveal */
   if (window.resizeDashCharts) setTimeout(window.resizeDashCharts, 30);
   if (tab==='heatmap') {
@@ -3368,6 +3395,13 @@ function initUrbexHeatmap(DATA){
   $('hm-t-heat').onchange=e=>{ if(e.target.checked) heatOn(); else { try{map.removeLayer(heat);}catch(_){} } };
   $('hm-t-sec').onchange=e=>{ if(e.target.checked) sec.addTo(map); else map.removeLayer(sec); };
   $('hm-t-points').onchange=e=>{ if(e.target.checked) points.addTo(map); else map.removeLayer(points); };
+  // usage events: which layers and metric people actually use (no data leaves)
+  ['hm-t-loc','hm-t-heat','hm-t-sec','hm-t-points','hm-t-bounds','hm-t-iso'].forEach(id=>{
+    const el=$(id); if(!el) return;
+    el.addEventListener('change',e=>{ if(typeof track==='function') track('map_layer',{layer:id.replace('hm-t-',''),on:e.target.checked}); });
+  });
+  Array.from(document.querySelectorAll('#hm-metric button')).forEach(b=>
+    b.addEventListener('click',()=>{ if(typeof track==='function') track('map_metric',{metric:b.getAttribute('data-m')}); }));
   $('hm-t-bounds').onchange=e=>{ if(e.target.checked) bounds.addTo(map); else map.removeLayer(bounds); };
 
   // search (localidades + sectores) — accent-insensitive with miss feedback
