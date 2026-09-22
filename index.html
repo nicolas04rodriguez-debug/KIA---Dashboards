@@ -175,8 +175,36 @@ img{max-width:100%}
 .meta-value{font-size:12px;font-weight:600;color:#334155}
 .meta-value.sm{font-size:11.5px;font-weight:500;color:var(--text-muted)}
 
-/* the status blocks (data date, coverage) close the sidebar; no account row */
 .sidebar-meta{padding-bottom:18px}
+
+/* Signed-in identity. Empty until /api/me answers, so the shared-code path
+   (which has no account behind it) simply shows nothing. */
+.sidebar-account{
+  display:flex;align-items:center;gap:9px;
+  padding:12px 16px;margin:0 8px 8px;border-radius:var(--r-md);
+  background:var(--primary-tint);border:1px solid #E9E2FB;
+}
+.avatar{
+  width:30px;height:30px;border-radius:var(--r-pill);flex-shrink:0;
+  background:linear-gradient(135deg,var(--primary),var(--primary-violet));
+  color:#fff;font-size:11px;font-weight:700;letter-spacing:.3px;
+  display:flex;align-items:center;justify-content:center;text-transform:uppercase;
+}
+.acct-info{min-width:0;flex:1}
+.acct-email{font-size:11.5px;font-weight:600;color:#334155;line-height:1.3;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.acct-role{font-size:10px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.5px;font-weight:700}
+.acct-out{
+  flex-shrink:0;width:26px;height:26px;padding:0;border:none;border-radius:var(--r-sm);
+  background:transparent;color:var(--text-faint);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:all var(--ease);
+}
+.acct-out:hover{background:rgba(124,58,237,.12);color:var(--primary-dark)}
+.acct-out svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+
+/* A viewer sees the export page but cannot pull contact data from it. */
+.opt.denied{opacity:.5;cursor:not-allowed}
+.opt.denied:hover{border-color:var(--border);background:var(--surface)}
 
 /* ── Page header ─────────────────────────────────────────────────── */
 .page-head{
@@ -525,6 +553,7 @@ td.dim{color:var(--text-faint)}
   border-radius:var(--r-lg);padding:30px;backdrop-filter:blur(12px);
 }
 .gate-desc{font-size:13px;color:rgba(255,255,255,.5);line-height:1.65;margin-bottom:20px}
+#gate .gate-input + .gate-input{margin-top:0}
 #gate .gate-input{
   width:100%;padding:12px 15px;
   border:1px solid rgba(255,255,255,.14);border-radius:var(--r-sm);
@@ -1169,6 +1198,17 @@ body.hm-standalone #hm-root{padding:28px 32px;max-width:1760px;margin:0 auto}
     </nav>
 
     <div class="sidebar-spacer"></div>
+
+    <div class="sidebar-account" id="sidebar-account" style="display:none">
+      <div class="avatar" id="acct-initials"></div>
+      <div class="acct-info">
+        <div class="acct-email" id="acct-email"></div>
+        <div class="acct-role" id="acct-role"></div>
+      </div>
+      <button class="acct-out" id="acct-signout" title="Cerrar sesión" onclick="signOut()" aria-label="Cerrar sesión">
+        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
 
     <div class="sidebar-meta">
       <div class="meta-block">
@@ -1872,11 +1912,14 @@ body.hm-standalone #hm-root{padding:28px 32px;max-width:1760px;margin:0 auto}
     </div>
     <div class="gate-sub">Inteligencia del mercado secundario</div>
     <div class="gate-card">
-      <p class="gate-desc">Este dashboard contiene datos personales de contacto.<br>Ingresa el código de acceso para continuar.</p>
-      <input id="pw-input" class="gate-input" type="password" placeholder="Código de acceso"
+      <p class="gate-desc">Este dashboard contiene datos personales de contacto.<br>Inicia sesión para continuar.</p>
+      <input id="email-input" class="gate-input" type="email" placeholder="Correo"
+             autocomplete="username" spellcheck="false"
+             onkeydown="if(event.key==='Enter')document.getElementById('pw-input').focus()">
+      <input id="pw-input" class="gate-input" type="password" placeholder="Contraseña"
              autocomplete="current-password" onkeydown="if(event.key==='Enter')tryUnlock()">
       <p id="pw-error" class="gate-error"></p>
-      <button class="gate-btn" onclick="tryUnlock()">Desbloquear dashboard</button>
+      <button class="gate-btn" onclick="tryUnlock()">Entrar</button>
     </div>
     <div class="gate-footer">
       <div class="gate-powered">Powered by Urbex · Confidencial</div>
@@ -2097,6 +2140,51 @@ const donutCenter = {
    (no measurement id configured) every call is a no-op. */
 function track(name, params) {
   try { if (typeof gtag === 'function') gtag('event', name, params || {}); } catch (_) {}
+}
+
+
+/* Signed-in identity. CURRENT_USER is filled by the login response (API build)
+   and stays null for the static build, which has no accounts behind it. */
+let CURRENT_USER = null;
+
+function applyUser(u) {
+  CURRENT_USER = u || null;
+  const box = document.getElementById('sidebar-account');
+  if (!box) return;
+  if (!u || !u.email) { box.style.display = 'none'; return; }
+  box.style.display = '';
+  const name = u.email.split('@')[0];
+  document.getElementById('acct-initials').textContent =
+    (name.replace(/[^a-zA-Z]/g, '').slice(0, 2) || 'U');
+  document.getElementById('acct-email').textContent = u.email;
+  document.getElementById('acct-email').title = u.email;
+  document.getElementById('acct-role').textContent =
+    u.role === 'admin' ? 'Administrador' : 'Consulta';
+  applyRole();
+}
+
+/* A viewer may read everything on screen but may not pull contact data out
+   of it, so the two personal-data datasets are disabled on the export page. */
+function applyRole() {
+  const viewer = CURRENT_USER && CURRENT_USER.role !== 'admin';
+  document.querySelectorAll('#section-export .opt').forEach(opt => {
+    const locked = !!opt.querySelector('.opt-lock');
+    opt.classList.toggle('denied', !!(viewer && locked));
+  });
+  if (viewer && DATASETS[EXPORT_DS] && DATASETS[EXPORT_DS].locked) {
+    selectDataset('aggregate');           // land on the one they can use
+  }
+}
+
+function canExport(dataset) {
+  const d = DATASETS[dataset];
+  if (!d || !d.locked) return true;                  // aggregates: always fine
+  return !CURRENT_USER || CURRENT_USER.role === 'admin';
+}
+
+function signOut() {
+  try { sessionStorage.removeItem('kia.session'); } catch (_) {}
+  location.reload();
 }
 
 const SVG_BULB = '<svg viewBox="0 0 24 24"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1V17h6v-.2c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2z"/></svg>';
@@ -2672,6 +2760,11 @@ function activeFilterChips() {
 function runExport() {
   const d = DATASETS[EXPORT_DS];
   if (!d) return;
+  if (!canExport(EXPORT_DS)) {
+    const lab = document.getElementById('export-count-label');
+    if (lab) lab.textContent = 'Tu cuenta no tiene permiso para exportar datos de contacto.';
+    return;
+  }
   track('export', { dataset: EXPORT_DS, gated: !!d.locked });
   if (d.locked) requireExportAuth(d.run); else d.run();
 }
