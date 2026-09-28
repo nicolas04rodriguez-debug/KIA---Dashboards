@@ -1047,6 +1047,17 @@ body.hm-standalone #hm-root{padding:28px 32px;max-width:1760px;margin:0 auto}
 #hm-root .hm-dark .leaflet-control-attribution{background:rgba(14,13,22,.66);color:#6E6B86}
 #hm-root .hm-dark .leaflet-control-attribution a{color:#A9A6C2}
 #hm-root .hm-dark .leaflet-control-scale-line{background:rgba(14,13,22,.66);color:#D0CEE2;border-color:#6E6B86}
+#hm-root .hm-dark .leaflet-bar{border-color:#2D2B3D;box-shadow:0 2px 10px rgba(0,0,0,.4)}
+#hm-root .hm-dark .leaflet-bar a{background:#1C1B29;color:#E4E2F0;border-bottom-color:#2D2B3D}
+#hm-root .hm-dark .leaflet-bar a:hover{background:#2A2840;color:#fff}
+#hm-root .hm-dark .leaflet-bar a.leaflet-disabled{background:#1C1B29;color:#4A4760}
+#hm-root .hm-mapcard.hm-dark .hm-legend{background:rgba(22,21,32,.94);border-color:#2D2B3D;box-shadow:0 12px 32px rgba(0,0,0,.45)}
+#hm-root .hm-mapcard.hm-dark .hm-legend h4,
+#hm-root .hm-mapcard.hm-dark .hm-grad-lbl{color:#8E8BA8}
+#hm-root .hm-mapcard.hm-dark .hm-leg-row{color:#C9C6DD}
+#hm-root .hm-mapcard.hm-dark .hm-chip{box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
+/* the no-data swatch matches how that locality is drawn on this base */
+#hm-root .hm-mapcard.hm-dark .hm-chip[style*="EDF0F4"]{background:#34324A!important;border-color:#5A5775!important}
 #hm-root .hm-rankcard{width:328px;flex:0 0 328px;display:flex;flex-direction:column}
 #hm-root .hm-rank-head{padding:16px 18px 14px;border-bottom:1px solid var(--border-soft)}
 #hm-root .hm-rank-title{font-size:15px;font-weight:650;color:var(--text);letter-spacing:-.1px}
@@ -1181,6 +1192,10 @@ body.hm-standalone #hm-root{padding:28px 32px;max-width:1760px;margin:0 auto}
 #hm-root .pp-t{font-size:14px;font-weight:650;margin-bottom:4px}
 #hm-root .pp-k{color:var(--text-muted)}
 .hm-loc-tip{font-family:'Inter',sans-serif!important;font-size:12px!important;border-radius:var(--r-sm)!important;border:1px solid #E5E7EB!important}
+#hm-root .hm-dealer{box-sizing:border-box;display:flex;align-items:center;justify-content:center;border-radius:50%;
+  background:#111827;border:2px solid #fff;box-shadow:0 3px 10px rgba(15,23,42,.35)}
+#hm-root .hm-dealer svg{width:16px;height:16px;fill:none;stroke:#fff;stroke-width:1.9;
+  stroke-linecap:round;stroke-linejoin:round}
 #hm-root .marker-cluster div{background:rgba(124,58,237,.86)!important;color:#fff!important;font-family:'Inter',sans-serif;font-weight:700}
 #hm-root .marker-cluster{background:rgba(124,58,237,.24)!important}
 
@@ -3440,18 +3455,24 @@ function initUrbexHeatmap(DATA){
   }).filter(Boolean)};
 
   // ---------- map & base layers ----------
-  const map = L.map('hm-map',{zoomControl:true,preferCanvas:true}).setView(S.center,11);
+  // An explicit zoom range. The raster basemap used to supply maxZoom through
+  // its tile layer; the vector one doesn't, and markercluster refuses to run
+  // without it ("Map has no maxZoom specified"), which left Puntos empty.
+  const map = L.map('hm-map',{zoomControl:true,preferCanvas:true,minZoom:8,maxZoom:18}).setView(S.center,11);
   L.control.scale({imperial:false}).addTo(map);
   hmBasemap.prepare(map);
   // built on first use and kept, so switching back reuses the fetched style
   const bases = {};
   let curBase = null;
   let restyleLoc = null;      // set once the locality layer exists (it is built further down)
+  let restyleMask = null;     // likewise for the district spotlight
   function setBase(kind){
     if(curBase) map.removeLayer(curBase);
     curBase = (bases[kind] || (bases[kind] = hmBasemap.make(kind, {places:PLACES}))).addTo(map);
     $('hm-map').classList.toggle('hm-dark', kind==='dark');
+    $('hm-mapcard').classList.toggle('hm-dark', kind==='dark');   // the legend lives beside the map
     if(restyleLoc) restyleLoc();
+    if(restyleMask) restyleMask();
   }
   setBase('light');
   $('hm-basemap').onchange = e => setBase(e.target.value);
@@ -3459,8 +3480,26 @@ function initUrbexHeatmap(DATA){
   // Stacking, bottom to top: basemap (200) · choropleth and other overlays
   // (400) · heat (420) · hover outline (440) · names (450) · markers (600).
   // Panes above the overlays let clicks fall through to the localities.
-  [['hmHeat',420],['hmHover',440]].forEach(([n,z])=>{ if(!map.getPane(n)){
+  [['hmHeat',420],['hmHover',440],['hmMask',455]].forEach(([n,z])=>{ if(!map.getPane(n)){
     const pn=map.createPane(n); pn.style.zIndex=z; pn.style.pointerEvents='none'; } });
+
+  // Spotlight on the district. A veil over everything outside the localities,
+  // above the names so the towns around Bogotá recede with their map, and
+  // above the heat so its glow stops at the district's edge. It is one
+  // polygon: the world, with each locality cut out of it.
+  const MASK = (function(){
+    const holes = [];
+    (((DATA.localidades||{}).features)||[]).forEach(f=>{ const g=f.geometry; if(!g) return;
+      (g.type==='Polygon'?[g.coordinates]:g.type==='MultiPolygon'?g.coordinates:[])
+        .forEach(rings=>holes.push(rings[0].map(c=>[c[1],c[0]]))); });
+    if(!holes.length) return null;
+    return L.polygon([[[-85,-180],[85,-180],[85,180],[-85,180]], ...holes],
+      {pane:'hmMask', interactive:false, stroke:false, fillOpacity:1});
+  })();
+  function maskStyle(){ if(!MASK) return;
+    const dark = $('hm-map').classList.contains('hm-dark');
+    MASK.setStyle({fillColor: dark ? '#0E0D16' : '#F2F4F7', fillOpacity: dark ? .52 : .58}); }
+  if(MASK){ maskStyle(); MASK.addTo(map); restyleMask = maskStyle; }
   const GL_HEAT = hmBasemap.gl();
 
   // Sequential ramp (ColorBrewer YlOrRd-6): monotonic lightness with wide,
@@ -3555,7 +3594,10 @@ function initUrbexHeatmap(DATA){
     rings.forEach(f=>{
       const idx=mins.indexOf(f.properties.minutes);
       const col=TIME_COLS[Math.min(idx,TIME_COLS.length-1)];
-      L.geoJSON(f,{style:{color:col,weight:2,fillColor:col,fillOpacity:.14},
+      // Contours, not stacked fills: the bands are nested, so filling each at
+      // 14% piled four tints on the city centre into a beige-olive wash. Only
+      // the nearest band keeps a light fill.
+      L.geoJSON(f,{style:{color:col,weight:2,opacity:.95,fillColor:col,fillOpacity:idx===0?.12:0},
         onEachFeature:(ft,l)=>l.bindTooltip(`≤ ${f.properties.minutes} min en carro`,
           {className:'hm-loc-tip',sticky:true})}).addTo(iso);
     });
@@ -3564,9 +3606,11 @@ function initUrbexHeatmap(DATA){
       || [{lat:(DATA.iso.properties&&DATA.iso.properties.center||S.center)[0],
            lng:(DATA.iso.properties&&DATA.iso.properties.center||S.center)[1],
            label:(DATA.iso.properties&&DATA.iso.properties.label)||'Concesionario'}];
+    const DEALER = L.divIcon({className:'hm-dealer', iconSize:[30,30], iconAnchor:[15,15],
+      html:'<svg viewBox="0 0 24 24"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>'});
     ctrs.forEach(c=>{
-      L.circleMarker([c.lat,c.lng],{radius:7,color:'#fff',weight:2.5,fillColor:'#111',fillOpacity:1})
-        .bindTooltip(`<b>${c.label}</b><br>Vitrina KIA`,{className:'hm-loc-tip'}).addTo(iso);
+      L.marker([c.lat,c.lng],{icon:DEALER, keyboard:false, riseOnHover:true})
+        .bindTooltip(`<b>${c.label}</b><br>Vitrina KIA`,{className:'hm-loc-tip', offset:[0,-14], direction:'top'}).addTo(iso);
     });
     const g=$('hm-g-iso'); if(g) g.style.display='';
     $('hm-t-iso').onchange=e=>{ if(e.target.checked) iso.addTo(map); else map.removeLayer(iso); legendSync(); };
@@ -3686,8 +3730,9 @@ function initUrbexHeatmap(DATA){
     }
     if(points) map.removeLayer(points);
     points = L.markerClusterGroup({chunkedLoading:true,maxClusterRadius:45});
+    // a white ring keeps each address legible over the heat
     pts.forEach(p=>{ const m=L.circleMarker([p[0],p[1]],{radius:4+Math.min(8,Math.log2(p[2]+1)),
-      color:'#111',weight:1,fillColor:p[3]==='A'?'#FD8D3C':'#111',fillOpacity:.75});
+      color:'#fff',weight:1.5,fillColor:p[3]==='A'?'#F59E0B':'#1F2937',fillOpacity:.92});
       m.bindPopup(`<div class="pp-t">${p[4]||'Dirección'}</div>
         <span class="pp-k">Carros en esta dirección:</span> <b>${fmt(p[2])}</b><br>
         ${p[5]?`<span class="pp-k">Valor avalúos:</span> ${fmtV(p[5])} COP<br>`:''}
@@ -4139,7 +4184,7 @@ window.hmEmptyState = function(){
   var el=document.getElementById('hm-map');
   if(!el || el._hmEmpty || window.UrbexHeatmap || typeof L==='undefined') return;
   el._hmEmpty=true;
-  var m=L.map('hm-map',{zoomControl:true,preferCanvas:true}).setView([4.65,-74.10],11);
+  var m=L.map('hm-map',{zoomControl:true,preferCanvas:true,minZoom:8,maxZoom:18}).setView([4.65,-74.10],11);
   hmBasemap.prepare(m); hmBasemap.make('light').addTo(m);
   var note=document.createElement('div'); note.className='hm-empty-note';
   note.innerHTML='<b>Mapa de calor sin datos todavía</b>La capa aparece una vez geocodificadas las direcciones.';
