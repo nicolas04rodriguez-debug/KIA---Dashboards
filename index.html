@@ -1196,6 +1196,44 @@ body.hm-standalone #hm-root{padding:28px 32px;max-width:1760px;margin:0 auto}
   background:#111827;border:2px solid #fff;box-shadow:0 3px 10px rgba(15,23,42,.35)}
 #hm-root .hm-dealer svg{width:16px;height:16px;fill:none;stroke:#fff;stroke-width:1.9;
   stroke-linecap:round;stroke-linejoin:round}
+/* ── Leads on the map ── */
+#hm-root .hm-chk-n{font-size:10.5px;font-weight:700;color:var(--primary);background:var(--primary-tint);
+  border-radius:999px;padding:1px 7px;margin-left:2px}
+#hm-root .hm-lead-badge{position:absolute;top:-5px;right:-7px;min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;
+  border-radius:9px;background:#BB162B;color:#fff;font:700 10.5px/14px 'Inter',sans-serif;text-align:center;
+  border:2px solid #fff;box-shadow:0 1px 4px rgba(15,23,42,.3)}
+#hm-root .hm-lead-cluster{display:flex;align-items:center;justify-content:center;box-sizing:border-box;border-radius:50%;
+  background:rgba(187,22,43,.94);color:#fff;font:700 12px 'Inter',sans-serif;border:2px solid #fff;
+  box-shadow:0 0 0 5px rgba(187,22,43,.18),0 3px 10px rgba(15,23,42,.3)}
+#hm-root .hm-lead-pin span{display:flex;align-items:center;justify-content:center;width:26px;height:26px;box-sizing:border-box;
+  border-radius:50%;border:2px solid #fff;box-shadow:0 2px 8px rgba(15,23,42,.35)}
+#hm-root .hm-lead-pin svg{width:13px;height:13px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round}
+#hm-root .hm-lead-pin b{position:absolute;top:-6px;right:-7px;min-width:16px;height:16px;padding:0 4px;box-sizing:border-box;
+  border-radius:8px;background:#111827;color:#fff;font:700 9.5px/12px 'Inter',sans-serif;text-align:center;border:2px solid #fff}
+#hm-root .hm-lead-sep{height:1px;background:var(--border-soft);margin:10px 0}
+#hm-root .hm-lead-pop{max-height:300px;overflow:auto;margin-right:-4px;padding-right:4px}
+#hm-root .hm-lead-count{font-size:10.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--text-faint);margin-bottom:8px}
+#hm-root .hm-lead + .hm-lead{border-top:1px solid var(--border-soft);margin-top:10px;padding-top:10px}
+#hm-root .hm-lead-name{font-size:13.5px;font-weight:700;color:var(--text);line-height:1.3}
+#hm-root .hm-lead-sub{font-size:11.5px;color:var(--text-muted);margin-top:2px}
+#hm-root .hm-lead-tags{display:flex;gap:8px;align-items:center;margin:7px 0 8px}
+#hm-root .hm-lead-tag{font-size:10.5px;font-weight:700;border-radius:999px;padding:2px 8px}
+#hm-root .hm-lead-prio{font-size:10.5px;color:var(--text-faint);font-weight:600}
+#hm-root .hm-lead-contact{display:flex;flex-direction:column;gap:6px}
+#hm-root .hm-lead-link{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--primary);
+  text-decoration:none;word-break:break-all}
+#hm-root .hm-lead-link:hover{text-decoration:underline}
+#hm-root .hm-lead-link svg{flex:0 0 14px;width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round}
+#hm-root .hm-lead-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#hm-root .hm-lead-wa{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:#0E7C66;
+  background:#E6F6F1;border-radius:999px;padding:2px 8px 2px 6px;text-decoration:none}
+#hm-root .hm-lead-wa:hover{background:#D3F0E6}
+#hm-root .hm-lead-wa svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linejoin:round}
+#hm-root .hm-lead-none{font-size:12px;color:var(--text-faint)}
+#hm-root .hm-lead-addr{font-size:11px;color:var(--text-faint);margin-top:10px;line-height:1.45}
+#hm-root .hm-leg-note{font-size:10.5px;color:var(--text-faint);margin-top:5px}
+#hm-root .hm-mapcard.hm-dark .hm-leg-note{color:#8E8BA8}
 #hm-root .marker-cluster div{background:rgba(124,58,237,.86)!important;color:#fff!important;font-family:'Inter',sans-serif;font-weight:700}
 #hm-root .marker-cluster{background:rgba(124,58,237,.24)!important}
 
@@ -1389,6 +1427,7 @@ body.hm-standalone #hm-root{padding:28px 32px;max-width:1760px;margin:0 auto}
         <label class="hm-chk"><input type="checkbox" id="hm-t-heat" checked> Calor</label>
         <label class="hm-chk"><input type="checkbox" id="hm-t-sec"> Por sector</label>
         <label class="hm-chk"><input type="checkbox" id="hm-t-points"> Puntos</label>
+        <label class="hm-chk" id="hm-g-leads" style="display:none"><input type="checkbox" id="hm-t-leads"> Leads KIA <span class="hm-chk-n" id="hm-leads-n"></span></label>
         <label class="hm-chk"><input type="checkbox" id="hm-t-bounds"> Límites</label>
         <label class="hm-chk" id="hm-g-iso" style="display:none"><input type="checkbox" id="hm-t-iso"> Isócronas ⏱</label>
       </div>
@@ -1419,6 +1458,11 @@ body.hm-standalone #hm-root{padding:28px 32px;max-width:1760px;margin:0 auto}
             <h4>Intensidad (calor)</h4>
             <div class="hm-grad"></div>
             <div class="hm-grad-lbl"><span id="hm-leg-lo">Menos carros</span><span id="hm-leg-hi">Más carros</span></div>
+          </div>
+          <div class="hm-leg-sec" id="hm-leg-leads" style="display:none">
+            <h4>Leads KIA &middot; acci&oacute;n</h4>
+            <div id="hm-leg-leads-rows"></div>
+            <div class="hm-leg-note">Clic en un lead para ver su contacto</div>
           </div>
         </div>
       </div>
@@ -3684,24 +3728,114 @@ function initUrbexHeatmap(DATA){
   // are a few thousand vertices, so every point is tested once, here; the
   // rectangle only remains for a payload that arrives without geometry.
   const BOG = {s:3.70, n:4.90, w:-74.50, e:-73.90};
-  const inBogota = (function(){
+  const inDistrict = (function(){
     const parts = [];
     (((DATA.localidades||{}).features)||[]).forEach(f=>{ const g=f.geometry; if(!g) return;
       (g.type==='Polygon'?[g.coordinates]:g.type==='MultiPolygon'?g.coordinates:[]).forEach(rings=>{
         let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
         for(const c of rings[0]){ if(c[0]<x0)x0=c[0]; if(c[0]>x1)x1=c[0]; if(c[1]<y0)y0=c[1]; if(c[1]>y1)y1=c[1]; }
         parts.push({x0,y0,x1,y1,rings}); }); });
-    if(!parts.length) return p => p[0]>=BOG.s && p[0]<=BOG.n && p[1]>=BOG.w && p[1]<=BOG.e;
+    if(!parts.length) return (la,ln) => la>=BOG.s && la<=BOG.n && ln>=BOG.w && ln<=BOG.e;
     const inRing = (x,y,r) => { let k=false;
       for(let i=0,j=r.length-1;i<r.length;j=i++){ const xi=r[i][0],yi=r[i][1],xj=r[j][0],yj=r[j][1];
         if((yi>y)!==(yj>y) && x<(xj-xi)*(y-yi)/(yj-yi)+xi) k=!k; }
       return k; };
-    const inside = new WeakSet();
-    for(const p of DATA.points){ const x=p[1], y=p[0];
-      if(parts.some(q=>x>=q.x0 && x<=q.x1 && y>=q.y0 && y<=q.y1 && inRing(x,y,q.rings[0])
-                       && !q.rings.slice(1).some(h=>inRing(x,y,h)))) inside.add(p); }
-    return p => inside.has(p);
+    return (y,x) => parts.some(q=>x>=q.x0 && x<=q.x1 && y>=q.y0 && y<=q.y1 && inRing(x,y,q.rings[0])
+                                  && !q.rings.slice(1).some(h=>inRing(x,y,h)));
   })();
+  const inBogota = (function(){ const inside = new WeakSet();
+    for(const p of DATA.points) if(inDistrict(p[0],p[1])) inside.add(p);
+    return p => inside.has(p); })();
+
+  // ---------- leads on the map ----------
+  // The leads already carry their contacts; /api/leads adds where each one is
+  // (the registry address its plate came from, tools/load_lead_locations.py).
+  // Grouped by location, since one address can hold several leads, and kept
+  // to the district like the heat. A payload without positions (the static
+  // build) shows none, and nothing below appears.
+  const LEADS_IN = (typeof ALL!=='undefined' && Array.isArray(ALL)) ? ALL : [];
+  const leadKey = (la,ln) => Number(la).toFixed(6)+','+Number(ln).toFixed(6);
+  const LEAD_AT = new Map();
+  let leadsPlaced = 0;
+  LEADS_IN.forEach(l=>{
+    if(l.lat==null || l.lng==null) return;
+    const la=Number(l.lat), ln=Number(l.lng);
+    if(!isFinite(la) || !isFinite(ln) || !inDistrict(la,ln)) return;
+    const k=leadKey(la,ln); if(!LEAD_AT.has(k)) LEAD_AT.set(k,[]);
+    LEAD_AT.get(k).push(l); leadsPlaced++;
+  });
+  const HAS_LEADS = leadsPlaced>0;
+  const SVC_C = (typeof SVC_COLORS!=='undefined' && SVC_COLORS) || {'Trade-in':'#DC2626','Warranty':'#2563EB','Maintenance':'#059669'};
+  const SVC_L = {'Trade-in':'Trade-in','Warranty':'Garantía','Maintenance':'Mantenimiento'};
+  const PRIO_L = {'1':'Alta','2':'Media','3':'Baja','4':'Mínima'};
+  const leadColor = l => SVC_C[l && l.serviceTag] || '#7C3AED';
+  // everything in a card comes from the registry: escape it all
+  const esc = v => String(v==null?'':v).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const ICO = {
+    tel:'<svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>',
+    mail:'<svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>',
+    wa:'<svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.5A8.4 8.4 0 1 1 21 11.5z"/></svg>'
+  };
+  // up to two numbers; a Colombian mobile (10 digits, starting with 3) also
+  // gets a WhatsApp link
+  function phoneLinks(raw){
+    return String(raw||'').split(/[,;\/|]+/).map(v=>v.trim()).filter(Boolean).slice(0,2).map(v=>{
+      const d=v.replace(/\D/g,''); if(d.length<7) return '';
+      const mobile=/^3\d{9}$/.test(d);
+      return `<div class="hm-lead-row"><a class="hm-lead-link" href="tel:${mobile?'+57'+d:d}">${ICO.tel}<span>${esc(v)}</span></a>`
+        + (mobile?`<a class="hm-lead-wa" href="https://wa.me/57${d}" target="_blank" rel="noopener">${ICO.wa}WhatsApp</a>`:'') + `</div>`;
+    }).join('');
+  }
+  function leadCard(l){
+    const col=leadColor(l), prio=PRIO_L[String(l.outreachPriority||'').replace(/^P/i,'').charAt(0)];
+    const email = l.emailPrimary
+      ? `<a class="hm-lead-link" href="mailto:${esc(l.emailPrimary)}">${ICO.mail}<span>${esc(l.emailPrimary)}</span></a>` : '';
+    const contact = phoneLinks(l.phonePrimary) + email;
+    return `<div class="hm-lead">
+      <div class="hm-lead-name">${esc(l.ownerName||l.name||'Propietario')}</div>
+      <div class="hm-lead-sub">${esc([l.modelGroup,l.manufactureYear].filter(Boolean).join(' '))}${l.plate?' &middot; '+esc(l.plate):''}</div>
+      <div class="hm-lead-tags"><span class="hm-lead-tag" style="color:${col};background:${col}1A">${esc(SVC_L[l.serviceTag]||l.serviceTag||'Sin acción')}</span>${prio?`<span class="hm-lead-prio">Prioridad ${prio}</span>`:''}</div>
+      <div class="hm-lead-contact">${contact||'<span class="hm-lead-none">Sin datos de contacto</span>'}</div>
+    </div>`;
+  }
+  function leadsHTML(ls){
+    const approx = ls.some(l=>/^amb/i.test(String(l.geoStatus||'')));
+    return `<div class="hm-lead-pop">${ls.length>1?`<div class="hm-lead-count">${ls.length} leads en esta dirección</div>`:''}
+      ${ls.map(leadCard).join('')}
+      <div class="hm-lead-addr">${esc(ls[0].geoAddress||'')}${approx?' &middot; ubicación aproximada':''}</div></div>`;
+  }
+  const LEAD_POPUP = {maxWidth:330, minWidth:270};
+  const trackLead = () => { if(typeof track==='function') track('map_lead_open',{}); };
+
+  // the purple bubbles say how many of their addresses have leads
+  function clusterIcon(cluster){
+    const n = cluster.getChildCount();
+    const nl = HAS_LEADS ? cluster.getAllChildMarkers().reduce((a,m)=>a+(m.options.leads||0),0) : 0;
+    const size = n<10 ? 'small' : n<100 ? 'medium' : 'large';
+    return L.divIcon({className:`marker-cluster marker-cluster-${size}`, iconSize:L.point(40,40),
+      html:`<div><span>${n}</span></div>${nl?`<b class="hm-lead-badge" title="${nl} leads KIA">${nl}</b>`:''}`});
+  }
+
+  // Leads KIA: only the leads, one pin per address, in KIA-red clusters
+  let leadsLayer = null;
+  if(HAS_LEADS){
+    leadsLayer = L.markerClusterGroup({maxClusterRadius:38, showCoverageOnHover:false,
+      iconCreateFunction:c=>L.divIcon({className:'hm-lead-cluster', iconSize:L.point(34,34),
+        html:`<span>${c.getAllChildMarkers().reduce((a,m)=>a+(m.options.leads||1),0)}</span>`})});
+    LEAD_AT.forEach((ls,k)=>{
+      const m = L.marker(k.split(',').map(Number), {keyboard:false, riseOnHover:true,
+        icon:L.divIcon({className:'hm-lead-pin', iconSize:[26,26], iconAnchor:[13,13],
+          html:`<span style="background:${leadColor(ls[0])}"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span>${ls.length>1?`<b>${ls.length}</b>`:''}`})});
+      m.options.leads = ls.length;
+      m.bindPopup(()=>leadsHTML(ls), LEAD_POPUP).on('popupopen', trackLead);
+      leadsLayer.addLayer(m);
+    });
+    const g=$('hm-g-leads'); if(g) g.style.display='';
+    const nn=$('hm-leads-n'); if(nn) nn.textContent=leadsPlaced;
+    const rows=$('hm-leg-leads-rows');
+    if(rows) rows.innerHTML = Object.keys(SVC_L).map(k=>
+      `<div class="hm-leg-row"><span class="hm-chip" style="background:${SVC_C[k]}"></span>${SVC_L[k]}</div>`).join('');
+  }
 
   function buildPoints(){
     const all = DATA.points.filter(p=>(st.quality==='all'||p[3]===st.quality) && pWeight(p)>0);
@@ -3729,14 +3863,33 @@ function initUrbexHeatmap(DATA){
          gradient:{0.2:'#FFEDA0',0.4:'#FEB24C',0.6:'#FD8D3C',0.8:'#EF5136',1.0:'#BB162B'}});
     }
     if(points) map.removeLayer(points);
-    points = L.markerClusterGroup({chunkedLoading:true,maxClusterRadius:45});
-    // a white ring keeps each address legible over the heat
-    pts.forEach(p=>{ const m=L.circleMarker([p[0],p[1]],{radius:4+Math.min(8,Math.log2(p[2]+1)),
-      color:'#fff',weight:1.5,fillColor:p[3]==='A'?'#F59E0B':'#1F2937',fillOpacity:.92});
-      m.bindPopup(`<div class="pp-t">${p[4]||'Dirección'}</div>
+    points = L.markerClusterGroup({chunkedLoading:true,maxClusterRadius:45,iconCreateFunction:clusterIcon});
+    // A white ring keeps each address legible over the heat. An address with
+    // leads takes the colour of its recommended action, draws above the rest,
+    // and its popup carries their contact cards.
+    // Several registry addresses can geocode to one spot (a building, or the
+    // street for an ambiguous match; 839 spots hold more than one point). A
+    // spot's leads go on one point only, the one with the most cars, or each
+    // duplicate would repeat the same cards and the cluster counts would
+    // double.
+    const leadOwner = new Map();
+    if(HAS_LEADS) pts.forEach(p=>{ const k=leadKey(p[0],p[1]);
+      if(LEAD_AT.has(k)){ const q=leadOwner.get(k); if(!q || p[2]>q[2]) leadOwner.set(k,p); } });
+    const hasLead = p => HAS_LEADS && leadOwner.get(leadKey(p[0],p[1]))===p;
+    const addPoint = p=>{ const ls = hasLead(p) ? LEAD_AT.get(leadKey(p[0],p[1])) : null;
+      const m=L.circleMarker([p[0],p[1]], ls
+        ? {radius:6+Math.min(6,Math.log2(p[2]+1)),color:'#fff',weight:2,fillColor:leadColor(ls[0]),fillOpacity:1}
+        : {radius:4+Math.min(8,Math.log2(p[2]+1)),color:'#fff',weight:1.5,fillColor:p[3]==='A'?'#F59E0B':'#1F2937',fillOpacity:.92});
+      m.options.leads = ls ? ls.length : 0;
+      m.bindPopup(`<div class="pp-t">${esc(p[4]||'Dirección')}</div>
         <span class="pp-k">Carros en esta dirección:</span> <b>${fmt(p[2])}</b><br>
         ${p[5]?`<span class="pp-k">Valor avalúos:</span> ${fmtV(p[5])} COP<br>`:''}
-        <span class="pp-k">Calidad:</span> ${p[3]==='A'?'Ambiguo':'Éxito'}`); points.addLayer(m); });
+        <span class="pp-k">Calidad:</span> ${p[3]==='A'?'Ambiguo':'Éxito'}`
+        + (ls ? '<div class="hm-lead-sep"></div>' + leadsHTML(ls) : ''), ls ? LEAD_POPUP : {});
+      if(ls) m.on('popupopen', trackLead);
+      points.addLayer(m); };
+    pts.filter(p=>!hasLead(p)).forEach(addPoint);
+    pts.filter(hasLead).forEach(addPoint);
     heatOn();
     try{ if($('hm-t-points').checked) points.addTo(map); }catch(e){}
   }
@@ -3973,9 +4126,10 @@ function initUrbexHeatmap(DATA){
   $('hm-t-heat').onchange=e=>{ if(e.target.checked) heatOn(); else { try{ map.removeLayer(heatLayer()); }catch(_){} }
     if(loc) loc.setStyle(styleLoc); legendSync(); };
   $('hm-t-sec').onchange=e=>{ if(e.target.checked) sec.addTo(map); else map.removeLayer(sec); };
-  $('hm-t-points').onchange=e=>{ if(e.target.checked) points.addTo(map); else map.removeLayer(points); };
+  $('hm-t-points').onchange=e=>{ if(e.target.checked) points.addTo(map); else map.removeLayer(points); legendSync(); };
+  if(leadsLayer) $('hm-t-leads').onchange=e=>{ if(e.target.checked) leadsLayer.addTo(map); else map.removeLayer(leadsLayer); legendSync(); };
   // usage events: which layers and metric people actually use (no data leaves)
-  ['hm-t-loc','hm-t-heat','hm-t-sec','hm-t-points','hm-t-bounds','hm-t-iso'].forEach(id=>{
+  ['hm-t-loc','hm-t-heat','hm-t-sec','hm-t-points','hm-t-leads','hm-t-bounds','hm-t-iso'].forEach(id=>{
     const el=$(id); if(!el) return;
     el.addEventListener('change',e=>{ if(typeof track==='function') track('map_layer',{layer:id.replace('hm-t-',''),on:e.target.checked}); });
   });
@@ -4012,6 +4166,7 @@ function initUrbexHeatmap(DATA){
     $('hm-t-heat').checked=true;
     $('hm-t-sec').checked=false;    try{ map.removeLayer(sec); }catch(_){}
     $('hm-t-points').checked=false; try{ map.removeLayer(points); }catch(_){}
+    if($('hm-t-leads')){ $('hm-t-leads').checked=false; if(leadsLayer) try{ map.removeLayer(leadsLayer); }catch(_){} }
     $('hm-t-bounds').checked=false; try{ map.removeLayer(bounds); }catch(_){}
     $('hm-basemap').value='light'; setBase('light');
     syncUI(); recompute(); legendSync();
@@ -4163,7 +4318,8 @@ function initUrbexHeatmap(DATA){
   // sizes it covered a quarter of the map.
   function legendSync(){
     const on = {'hm-leg-loc':$('hm-t-loc').checked, 'hm-leg-heat':$('hm-t-heat').checked,
-                'hm-leg-iso':!!($('hm-t-iso') && $('hm-t-iso').checked)};
+                'hm-leg-iso':!!($('hm-t-iso') && $('hm-t-iso').checked),
+                'hm-leg-leads':HAS_LEADS && ($('hm-t-points').checked || !!($('hm-t-leads') && $('hm-t-leads').checked))};
     let first = true;
     document.querySelectorAll('#hm-root .hm-leg-sec').forEach(sec=>{
       const show = !!on[sec.id]; sec.style.display = show ? '' : 'none';
