@@ -3446,10 +3446,12 @@ function initUrbexHeatmap(DATA){
   // built on first use and kept, so switching back reuses the fetched style
   const bases = {};
   let curBase = null;
+  let restyleLoc = null;      // set once the locality layer exists (it is built further down)
   function setBase(kind){
     if(curBase) map.removeLayer(curBase);
     curBase = (bases[kind] || (bases[kind] = hmBasemap.make(kind, {places:PLACES}))).addTo(map);
     $('hm-map').classList.toggle('hm-dark', kind==='dark');
+    if(restyleLoc) restyleLoc();
   }
   setBase('light');
   $('hm-basemap').onchange = e => setBase(e.target.value);
@@ -3497,10 +3499,13 @@ function initUrbexHeatmap(DATA){
     // choropleth under it mixed the same ramp twice into one muddy red. The
     // fill drops to a light wash of its class and the borders move above
     // the heat (drawn in the heat's own layer), where they stay crisp.
+    // On Oscuro the wash is halved: light ramp colours at 14% over near-black
+    // turn into brown and maroon blocks.
     const soft = GL_HEAT && $('hm-t-heat').checked;
-    return col?{color:'#fff',weight:soft?0:1,fillColor:col,fillOpacity:soft?.14:.62}
+    const dark = $('hm-map').classList.contains('hm-dark'), wash = dark ? .07 : .14;
+    return col?{color:'#fff',weight:soft?0:1,fillColor:col,fillOpacity:soft?wash:.62}
              :{color:'#C7CDD6',weight:1,dashArray:'3 3',
-               fillColor:'#EDF0F4',fillOpacity:.5};
+               fillColor:'#EDF0F4',fillOpacity:dark?.1:.5};
   }
   const loc = DATA.localidades ? L.geoJSON(DATA.localidades,{
     style:styleLoc,
@@ -3528,6 +3533,7 @@ function initUrbexHeatmap(DATA){
       l.on('mouseout',()=>{ if(hoverLine){ map.removeLayer(hoverLine); hoverLine=null; } }); }
   }) : null;
   let hoverLine=null;
+  restyleLoc = () => { if(loc) loc.setStyle(styleLoc); };
 
   // ---------- sector layer (fine detail, cars only) ----------
   const SEC_BR = S.breaks;
