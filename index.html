@@ -1137,6 +1137,8 @@ body.hm-standalone #hm-root{padding:28px 32px;max-width:1760px;margin:0 auto}
   border-radius:var(--r-lg);padding:22px 24px;box-shadow:var(--shadow-card);
 }
 #hm-root .hm-chart-title{font-size:16px;font-weight:650;color:var(--text);letter-spacing:-.15px}
+#hm-root .hm-chart-note{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--text-muted);margin-top:10px;line-height:1.45}
+#hm-root .hm-chart-note b{color:#334155;font-weight:650}
 #hm-root .hm-chart-sub{font-size:12.5px;color:var(--text-muted);margin-bottom:16px;margin-top:3px;line-height:1.5}
 #hm-root .hm-canvas-wrap{position:relative;height:250px}
 
@@ -1487,6 +1489,7 @@ body.hm-standalone #hm-root{padding:28px 32px;max-width:1760px;margin:0 auto}
       <div class="hm-chart-title">Antigüedad del parque (Bogotá)</div>
       <div class="hm-chart-sub">Año-modelo de cada carro · clic en un rango para filtrar el mapa</div>
       <div class="hm-canvas-wrap"><canvas id="hm-chart-years"></canvas></div>
+      <div class="hm-chart-note" id="hm-years-note"></div>
       <div class="hm-callout" id="hm-age-callout"></div>
     </div>
   </div>
@@ -4057,14 +4060,21 @@ function initUrbexHeatmap(DATA){
           const l=locBounds[n]; if(l){ try{ map.fitBounds(l.getBounds(),{padding:[20,20]}); l.openPopup(); }catch(_){} } } } } });
     if(HAS_DIMS){
       chYears = new Chart($('hm-chart-years'),{ type:'bar',
-        data:{ labels:YEARS.concat(['S/D']),
+        data:{ labels:YEARS.concat(['Sin dato']),
           datasets:[{ data:yearTotals.concat([Math.max(0,carsBog-knownY)]), backgroundColor:yearCols(),
             borderColor:yearBorders(), borderWidth:yearBorderW(), borderRadius:3 }] },
         options:{ responsive:true, maintainAspectRatio:false,
           plugins:{ legend:{display:false},
-            tooltip:{ callbacks:{ label:c=>` ${fmt(c.raw)} carros${c.label==='S/D'?' (año no registrado)':''}` } } },
+            tooltip:{ callbacks:{ label:c=>` ${fmt(c.raw)} carros${c.label==='Sin dato'?' sin año en el registro de origen':''}` } } },
           scales:{ x:{grid:{display:false},ticks:{color:'#333'}}, y:{grid:{color:'#F3F3F3'},ticks:{callback:v=>fmt(v)}} },
           onClick:(e,els)=>{ if(els.length && els[0].index<YEARS.length){ setYear(st.year===els[0].index?-1:els[0].index); } } } });
+      // "S/D" alone read as a fault. These are real cars (distinct plates)
+      // whose registry rows came without brand and model year: say so, with
+      // the figure, under the chart.
+      const noY = Math.max(0, carsBog-knownY);
+      if($('hm-years-note') && noY) $('hm-years-note').innerHTML =
+        `<span class="hm-chip" style="background:#EDEDED"></span><span><b>Sin dato:</b> ${fmt(noY)} carros `+
+        `(${Math.round(noY/carsBog*100)}%) llegaron sin año-modelo en el registro de origen.</span>`;
     } else { $('hm-card-years').style.display='none'; }
   }
   function topSel(){
