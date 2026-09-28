@@ -1017,8 +1017,11 @@ body.hm-standalone #hm-root{padding:28px 32px;max-width:1760px;margin:0 auto}
 #hm-root .hm-mapcard{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
 #hm-root .hm-mapcard:fullscreen{background:var(--surface);border-radius:0}
 #hm-root .hm-mapcard:fullscreen #hm-map{height:100vh!important}
-#hm-root .hm-mapwrap{position:relative;flex:1}
-#hm-root #hm-map{height:68vh;min-height:500px;width:100%;background:#F2F4F7;z-index:0}
+/* The card stretches to the ranking beside it; the map grows with it. With a
+   fixed height it stopped short at 1280x720 (a 1080p laptop at 150%),
+   leaving an empty band under the map with the legend hanging into it. */
+#hm-root .hm-mapwrap{position:relative;flex:1;display:flex;flex-direction:column}
+#hm-root #hm-map{flex:1 0 auto;height:68vh;min-height:500px;width:100%;background:#F2F4F7;z-index:0}
 /* The basemap's colours now come from its style (see hmBasemap), so the CSS
    filter that used to wash the raster tiles out is gone: filtering a
    finished image only ever made it greyer and softer.
@@ -1130,14 +1133,14 @@ body.hm-standalone #hm-root{padding:28px 32px;max-width:1760px;margin:0 auto}
 #hm-root .hm-legend{
   position:absolute;left:16px;bottom:20px;z-index:500;
   background:rgba(255,255,255,.97);border:1px solid var(--border);
-  border-radius:var(--r-md);padding:13px 15px;width:218px;
+  border-radius:var(--r-md);padding:11px 13px;width:196px;
   box-shadow:var(--shadow-pop);backdrop-filter:blur(6px);
 }
 #hm-root .hm-legend h4{
   margin:0 0 7px;font-size:10.5px;text-transform:uppercase;
   letter-spacing:.6px;color:var(--text-faint);font-weight:700;
 }
-#hm-root .hm-leg-row{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--text-muted);margin:4px 0}
+#hm-root .hm-leg-row{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text-muted);margin:3px 0}
 #hm-root .hm-chip{width:16px;height:11px;border-radius:3px;flex:0 0 auto;box-shadow:inset 0 0 0 1px rgba(15,23,42,.12)}
 #hm-root .hm-grad{
   height:9px;border-radius:5px;margin:6px 0 4px;
@@ -1393,11 +1396,15 @@ body.hm-standalone #hm-root{padding:28px 32px;max-width:1760px;margin:0 auto}
         <div id="hm-map"></div>
         <div class="hm-filter-note" id="hm-filter-note" style="display:none"></div>
         <div class="hm-legend">
-          <h4 id="hm-leg-title">Carros por localidad</h4>
-          <div id="hm-choro-legend"></div>
-          <h4 style="margin-top:9px">Intensidad (calor)</h4>
-          <div class="hm-grad"></div>
-          <div class="hm-grad-lbl"><span id="hm-leg-lo">Menos carros</span><span id="hm-leg-hi">Más carros</span></div>
+          <div class="hm-leg-sec" id="hm-leg-loc">
+            <h4 id="hm-leg-title">Carros por localidad</h4>
+            <div id="hm-choro-legend"></div>
+          </div>
+          <div class="hm-leg-sec" id="hm-leg-heat">
+            <h4>Intensidad (calor)</h4>
+            <div class="hm-grad"></div>
+            <div class="hm-grad-lbl"><span id="hm-leg-lo">Menos carros</span><span id="hm-leg-hi">Más carros</span></div>
+          </div>
         </div>
       </div>
     </div>
@@ -3235,10 +3242,10 @@ window.hmBasemap = (function(){
   // published: it is the full-colour reference map.
   const THEME = {
     light:{ hue:218, sat:.12, lift:l=>l,
-      set:{ background:'#F2F4F7', water:'#D3DDE8', waterway:'#C5D2E0', park:'#E3EAE2', wood:'#E1E8DF',
+      set:{ background:'#F2F4F7', water:'#D3DDE8', waterway:'#C5D2E0', park:'#E3EAE2', wood:'#E1E8DF', boundary:'#CDD3DC',
             text:'#4B5565', textStrong:'#1F2937', textRoad:'#6B7280', textWater:'#57718F', halo:'#FFFFFF' } },
     dark: { hue:248, sat:.18, lift:l=>.05+l*.93,
-      set:{ water:'#0C0B14', waterway:'#12111C',
+      set:{ water:'#0C0B14', waterway:'#12111C', boundary:'#2D2B3D',
             text:'#A09DB9', textStrong:'#DEDCEE', textRoad:'#7F7C9A', textWater:'#7282AA', halo:'#0E0D16' } }
   };
 
@@ -3266,6 +3273,7 @@ window.hmBasemap = (function(){
       if(sl==='transportation_name') return 'textRoad';
       return (sl==='place' && /city|state|country/.test(id)) ? 'textStrong' : 'text';
     }
+    if(sl==='boundary' && l.type==='line') return 'boundary';
     if(sl==='water' && l.type==='fill') return 'water';
     if(sl==='waterway' && l.type==='line') return 'waterway';
     if(/park/.test(id)) return 'park';
@@ -3284,8 +3292,12 @@ window.hmBasemap = (function(){
       const p = l.paint || (l.paint={});
       delete p['fill-pattern'];                   // themed bases are flat colour; Oscuro's sprite lacks "wood-pattern"
       Object.keys(p).forEach(k=>{ if(/-color$/.test(k)) p[k]=walk(p[k],t); });
-      const c = t.set[role(l)];
+      const r = role(l), c = t.set[r];
       if(c) p[(l.type==='symbol' ? 'text' : l.type)+'-color'] = c;
+      // Municipal borders: the source styles draw them as dotted 2px rows
+      // that crosshatch the whole savanna. A solid hairline says the same.
+      if(r==='boundary'){ delete p['line-dasharray']; delete p['line-blur'];
+        p['line-width'] = ['interpolate',['linear'],['zoom'], 6,.5, 12,1.1]; }
       if(l.type==='symbol'){ p['text-halo-color']=t.set.halo; p['text-halo-width']=1.5; p['text-halo-blur']=.5; }
     });
     return s;
@@ -3349,6 +3361,7 @@ window.hmBasemap = (function(){
   }
 
   return {
+    gl: canGL,
     // once per Leaflet map, before any base is added
     prepare(map){
       if(!map.getPane('hmNames')){
@@ -3441,6 +3454,13 @@ function initUrbexHeatmap(DATA){
   setBase('light');
   $('hm-basemap').onchange = e => setBase(e.target.value);
 
+  // Stacking, bottom to top: basemap (200) · choropleth and other overlays
+  // (400) · heat (420) · hover outline (440) · names (450) · markers (600).
+  // Panes above the overlays let clicks fall through to the localities.
+  [['hmHeat',420],['hmHover',440]].forEach(([n,z])=>{ if(!map.getPane(n)){
+    const pn=map.createPane(n); pn.style.zIndex=z; pn.style.pointerEvents='none'; } });
+  const GL_HEAT = hmBasemap.gl();
+
   // Sequential ramp (ColorBrewer YlOrRd-6): monotonic lightness with wide,
   // hue-assisted steps (min adjacent luminance gap .108 vs .066 of a reds-only
   // ramp) — every legend class is distinguishable; dark end ≈ KIA red.
@@ -3473,7 +3493,12 @@ function initUrbexHeatmap(DATA){
     // flat grey with no legend entry, which read as a broken polygon. A
     // dashed hairline and a very light wash say "no data" instead, and the
     // legend carries a matching row.
-    return col?{color:'#fff',weight:1,fillColor:col,fillOpacity:.62}
+    // While the GPU heat is on it carries the colour, and a full-strength
+    // choropleth under it mixed the same ramp twice into one muddy red. The
+    // fill drops to a light wash of its class and the borders move above
+    // the heat (drawn in the heat's own layer), where they stay crisp.
+    const soft = GL_HEAT && $('hm-t-heat').checked;
+    return col?{color:'#fff',weight:soft?0:1,fillColor:col,fillOpacity:soft?.14:.62}
              :{color:'#C7CDD6',weight:1,dashArray:'3 3',
                fillColor:'#EDF0F4',fillOpacity:.5};
   }
@@ -3494,9 +3519,15 @@ function initUrbexHeatmap(DATA){
         ${p.valor?`<span class="pp-k">Valor avalúos:</span> ${fmtV(p.valor)} COP<br>`:''}
         ${p.top_marca&&p.top_marca!=='—'?`<span class="pp-k">Marca top:</span> ${p.top_marca}<br>`:''}
         <span class="pp-k">Ubicaciones:</span> ${fmt(p.points)}`; });
-      l.on('mouseover',()=>l.setStyle({weight:2.4,color:'#111'}));
-      l.on('mouseout',()=>loc.resetStyle(l)); }
+      // The outline is drawn in its own pane above the heat: on the
+      // choropleth's canvas it sat under the heat and vanished where the
+      // city is densest.
+      l.on('mouseover',()=>{ if(hoverLine) map.removeLayer(hoverLine);
+        hoverLine=L.geoJSON(f,{pane:'hmHover',interactive:false,
+          style:{color:'#111827',weight:2.4,opacity:.9,fill:false}}).addTo(map); });
+      l.on('mouseout',()=>{ if(hoverLine){ map.removeLayer(hoverLine); hoverLine=null; } }); }
   }) : null;
+  let hoverLine=null;
 
   // ---------- sector layer (fine detail, cars only) ----------
   const SEC_BR = S.breaks;
@@ -3532,7 +3563,7 @@ function initUrbexHeatmap(DATA){
         .bindTooltip(`<b>${c.label}</b><br>Vitrina KIA`,{className:'hm-loc-tip'}).addTo(iso);
     });
     const g=$('hm-g-iso'); if(g) g.style.display='';
-    $('hm-t-iso').onchange=e=>{ if(e.target.checked) iso.addTo(map); else map.removeLayer(iso); };
+    $('hm-t-iso').onchange=e=>{ if(e.target.checked) iso.addTo(map); else map.removeLayer(iso); legendSync(); };
   }
 
   // ---------- point weight under current filters ----------
@@ -3546,6 +3577,49 @@ function initUrbexHeatmap(DATA){
 
   // ---------- heat + points layers ----------
   let heat=null, points=null;
+  // The heat is drawn on the GPU by MapLibre, in its own pane between the
+  // choropleth and the names. leaflet.heat (2015) painted a canvas at 1x and
+  // let the browser stretch it, so on any laptop display the heat was a soft,
+  // pixel-blurred smear with one fixed radius at every zoom. Here it renders
+  // at the screen's pixel density, its radius and intensity follow the zoom,
+  // and the low end fades to transparent instead of veiling the city.
+  // The same GL layer draws the locality borders above the heat. leaflet.heat
+  // remains the path for a browser without WebGL.
+  // (MapLibre zooms run one below Leaflet's here: GL 10 is Leaflet 11.)
+  let HEAT_FC = {type:'FeatureCollection', features:[]};
+  const heatGL = GL_HEAT ? L.maplibreGL({pane:'hmHeat', attributionControl:false, style:{
+    version:8,
+    sources:{ heat:{type:'geojson', data:HEAT_FC},
+              loc:{type:'geojson', data:DATA.localidades||{type:'FeatureCollection',features:[]}} },
+    layers:[
+      { id:'heat', type:'heatmap', source:'heat', paint:{
+          'heatmap-weight':['get','w'],
+          // tuned on the real payload: at .75 the whole city saturated to
+          // the top colour and read as one red slab
+          'heatmap-intensity':['interpolate',['linear'],['zoom'], 8,.09, 10,.14, 12,.27, 14,.62],
+          'heatmap-radius':['interpolate',['exponential',1.5],['zoom'], 8,6, 10,12, 12,24, 14,48, 16,96],
+          'heatmap-color':['interpolate',['linear'],['heatmap-density'],
+            0,'rgba(255,237,160,0)', .1,'rgba(255,237,160,.45)', .28,'rgba(254,178,76,.82)',
+            .48,'#FD8D3C', .68,'#EF5136', .86,'#D42430', 1,'#BB162B'],
+          'heatmap-opacity':['interpolate',['linear'],['zoom'], 9,.9, 15,.8] } },
+      { id:'loc-lines', type:'line', source:'loc', paint:{
+          'line-color':'#FFFFFF', 'line-opacity':.8,
+          'line-width':['interpolate',['linear'],['zoom'], 9,.7, 13,1.5]} }
+    ]}}) : null;
+  // Keep the style object current too: removing the layer destroys its GL
+  // map, and re-adding builds a new one from these options.
+  function heatSync(){
+    if(!heatGL) return;
+    const st0 = heatGL.options.style;
+    st0.sources.heat.data = HEAT_FC;
+    st0.layers[1].layout = {visibility: $('hm-t-loc').checked ? 'visible' : 'none'};
+    const g = heatGL.getMaplibreMap && heatGL.getMaplibreMap();
+    if(!g) return;
+    const src = g.getSource && g.getSource('heat');
+    if(!src){ g.once('load', heatSync); return; }
+    src.setData(HEAT_FC);
+    g.setLayoutProperty('loc-lines','visibility', $('hm-t-loc').checked ? 'visible' : 'none');
+  }
   // The map is about Bogotá D.C. Owner addresses geocode all over Colombia —
   // and a few land in Venezuela or Brazil, which are plainly geocoding
   // misses. Drawing them makes a city map look like a national one, so the
@@ -3594,10 +3668,16 @@ function initUrbexHeatmap(DATA){
     }
     const ws = pts.map(pWeight);
     const cap = Math.max(2, quantile(ws,.97));
-    if(heat) map.removeLayer(heat);
-    heat = L.heatLayer(pts.map((p,i)=>[p[0],p[1],Math.min(1,ws[i]/cap)]),
-      {radius:19,blur:15,maxZoom:17,minOpacity:.35,
-       gradient:{0.2:'#FFEDA0',0.4:'#FEB24C',0.6:'#FD8D3C',0.8:'#EF5136',1.0:'#BB162B'}});
+    if(GL_HEAT){
+      HEAT_FC = {type:'FeatureCollection', features:pts.map((p,i)=>({type:'Feature',
+        properties:{w:Math.min(1,ws[i]/cap)}, geometry:{type:'Point', coordinates:[p[1],p[0]]}}))};
+      heatSync();
+    } else {
+      if(heat) map.removeLayer(heat);
+      heat = L.heatLayer(pts.map((p,i)=>[p[0],p[1],Math.min(1,ws[i]/cap)]),
+        {radius:19,blur:15,maxZoom:17,minOpacity:.35,
+         gradient:{0.2:'#FFEDA0',0.4:'#FEB24C',0.6:'#FD8D3C',0.8:'#EF5136',1.0:'#BB162B'}});
+    }
     if(points) map.removeLayer(points);
     points = L.markerClusterGroup({chunkedLoading:true,maxClusterRadius:45});
     pts.forEach(p=>{ const m=L.circleMarker([p[0],p[1]],{radius:4+Math.min(8,Math.log2(p[2]+1)),
@@ -3610,7 +3690,8 @@ function initUrbexHeatmap(DATA){
     try{ if($('hm-t-points').checked) points.addTo(map); }catch(e){}
   }
   // leaflet-heat throws getImageData() on a 0-size canvas (hidden tab); guard it.
-  function heatOn(){ if($('hm-t-heat').checked && map.getSize().x>0){ try{ if(!map.hasLayer(heat)) heat.addTo(map); }catch(e){} } }
+  const heatLayer = () => GL_HEAT ? heatGL : heat;
+  function heatOn(){ if($('hm-t-heat').checked && map.getSize().x>0){ try{ const h=heatLayer(); if(h && !map.hasLayer(h)) h.addTo(map); }catch(e){} } }
 
   if(loc) loc.addTo(map);
   buildPoints();
@@ -3631,11 +3712,16 @@ function initUrbexHeatmap(DATA){
   // Reset still frames the full extent — see the reset handler below.
 
   function refresh(){ map.invalidateSize(false);
-    try{ if(map.hasLayer(heat)) map.removeLayer(heat); }catch(e){}
+    // leaflet.heat must be rebuilt after its canvas was 0-sized; the GL heat
+    // just follows the resize
+    if(!GL_HEAT){ try{ if(map.hasLayer(heat)) map.removeLayer(heat); }catch(e){} }
     heatOn(); }        // never re-frames: the user's zoom and pan are theirs
   window.addEventListener('resize',()=>map.invalidateSize(false));
   if('ResizeObserver' in window){ let pw=0;
-    new ResizeObserver(es=>{ const w=es[0].contentRect.width; if(w>0&&pw===0) setTimeout(refresh,60); pw=w; }).observe($('hm-map')); }
+    // first appearance (hidden tab -> shown) needs the full refresh; any later
+    // size change, such as the card growing with the ranking, only a re-measure
+    new ResizeObserver(es=>{ const w=es[0].contentRect.width;
+      if(w>0&&pw===0) setTimeout(refresh,60); else if(w>0) map.invalidateSize(false); pw=w; }).observe($('hm-map')); }
   setTimeout(refresh,300);
 
   // ---------- KPIs (dynamic, count-up) ----------
@@ -3831,8 +3917,10 @@ function initUrbexHeatmap(DATA){
   Array.from(document.querySelectorAll('#hm-metric button')).forEach(b=>{
     b.onclick=()=>{ if(!b.disabled) setMetric(b.getAttribute('data-m')); }; });
   $('hm-f-status').onchange=e=>{ st.quality=e.target.value; buildPoints(); };
-  $('hm-t-loc').onchange=e=>{ if(loc){ if(e.target.checked) loc.addTo(map); else map.removeLayer(loc); } };
-  $('hm-t-heat').onchange=e=>{ if(e.target.checked) heatOn(); else { try{map.removeLayer(heat);}catch(_){} } };
+  $('hm-t-loc').onchange=e=>{ if(loc){ if(e.target.checked) loc.addTo(map); else map.removeLayer(loc); }
+    heatSync(); legendSync(); };
+  $('hm-t-heat').onchange=e=>{ if(e.target.checked) heatOn(); else { try{ map.removeLayer(heatLayer()); }catch(_){} }
+    if(loc) loc.setStyle(styleLoc); legendSync(); };
   $('hm-t-sec').onchange=e=>{ if(e.target.checked) sec.addTo(map); else map.removeLayer(sec); };
   $('hm-t-points').onchange=e=>{ if(e.target.checked) points.addTo(map); else map.removeLayer(points); };
   // usage events: which layers and metric people actually use (no data leaves)
@@ -3875,7 +3963,7 @@ function initUrbexHeatmap(DATA){
     $('hm-t-points').checked=false; try{ map.removeLayer(points); }catch(_){}
     $('hm-t-bounds').checked=false; try{ map.removeLayer(bounds); }catch(_){}
     $('hm-basemap').value='light'; setBase('light');
-    syncUI(); recompute();
+    syncUI(); recompute(); legendSync();
     // Reset returns to the view the map opened with, rather than fitting the
     // administrative bounds: same frame every time, and no surprise jump out
     // to rural Sumapaz.
@@ -4013,14 +4101,28 @@ function initUrbexHeatmap(DATA){
   if(ISO_ON){
     const lg=document.querySelector('#hm-root .hm-legend');
     if(lg){ const mins=[...DATA.iso.features].map(f=>f.properties.minutes).sort((a,b)=>a-b);
-      const div=document.createElement('div');
-      div.innerHTML='<h4 style="margin-top:9px">Tiempo al concesionario</h4>'
+      const div=document.createElement('div'); div.className='hm-leg-sec'; div.id='hm-leg-iso';
+      div.innerHTML='<h4>Tiempo al concesionario</h4>'
         + mins.map((m,i)=>`<div class="hm-leg-row"><span class="hm-chip" style="background:${TIME_COLS[Math.min(i,TIME_COLS.length-1)]}"></span>≤ ${m} min en carro</div>`).join('');
       lg.appendChild(div); }
   }
 
+  // The legend describes what is on the map, nothing more: it was listing
+  // the drive-time scale with the isochrones switched off, and at laptop
+  // sizes it covered a quarter of the map.
+  function legendSync(){
+    const on = {'hm-leg-loc':$('hm-t-loc').checked, 'hm-leg-heat':$('hm-t-heat').checked,
+                'hm-leg-iso':!!($('hm-t-iso') && $('hm-t-iso').checked)};
+    let first = true;
+    document.querySelectorAll('#hm-root .hm-leg-sec').forEach(sec=>{
+      const show = !!on[sec.id]; sec.style.display = show ? '' : 'none';
+      if(show){ sec.style.marginTop = first ? '0' : '10px'; first = false; } });
+    const lg = document.querySelector('#hm-root .hm-legend');
+    if(lg) lg.style.display = first ? 'none' : '';
+  }
+
   // ---------- initial render ----------
-  renderKPIs(); renderRank(); renderLegend(); initCharts(); syncUI();
+  renderKPIs(); renderRank(); renderLegend(); initCharts(); syncUI(); legendSync();
 
   window.UrbexHeatmap = { refresh, map, setBrand, setYear, setMetric, showView };
 }
